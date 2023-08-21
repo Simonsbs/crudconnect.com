@@ -1,0 +1,22 @@
+{
+  "resourceName": "ccProfiles",
+  "tableName": "ccProfiles",
+  "partitionKey": {
+    "fieldName": "id",
+    "fieldType": "string"
+  },
+  "sortKey": {
+    "fieldName": "firstName",
+    "fieldType": "string"
+  },
+  "gsi": [
+    {
+      "name": "inx",
+      "partitionKey": {
+        "fieldName": "id",
+        "fieldType": "string"
+      }
+    }
+  ],
+  "triggerFunctions": []
+}

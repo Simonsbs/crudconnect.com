@@ -1,0 +1,23 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-crudconnectwebapp-dev-232001-authRole",
+      "UnauthRoleArn": "arn:aws:iam::205254036537:role/amplify-crudconnectwebapp-dev-232001-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::205254036537:role/amplify-crudconnectwebapp-dev-232001-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-crudconnectwebapp-dev-232001-deployment",
+      "UnauthRoleName": "amplify-crudconnectwebapp-dev-232001-unauthRole",
+      "StackName": "amplify-crudconnectwebapp-dev-232001",
+      "StackId": "arn:aws:cloudformation:us-east-1:205254036537:stack/amplify-crudconnectwebapp-dev-232001/f2a64010-3f96-11ee-a5cb-0e56311d0e19",
+      "AmplifyAppId": "d13krhfnbqadjn"
+    },
+    "categories": {
+      "auth": {
+        "crudconnectwebappf8fbcee2": {}
+      },
+      "function": {
+        "fncProfile": {}
+      }
+    }
+  }
+}
