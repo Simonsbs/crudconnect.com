@@ -1,5 +1,20 @@
 {
-  "api": {},
+  "api": {
+    "apiProfile": {
+      "dependsOn": [
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "ccFncProfile"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "API Gateway"
+    }
+  },
   "auth": {
     "crudconnectwebappf8fbcee2": {
       "customAuth": false,
@@ -29,30 +44,29 @@
     }
   },
   "function": {
-    "fncProfile": {
+    "ccFncProfile": {
       "build": true,
-      "dependsOn": [
-        {
-          "attributeEnvMap": {
-            "Arn": "TABLE_ARN",
-            "Name": "TABLE_NAME"
-          },
-          "attributes": [
-            "Name",
-            "Arn"
-          ],
-          "category": "storage",
-          "resourceName": "ccProfiles"
-        }
-      ],
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
     }
   },
-  "storage": {
-    "ccProfiles": {
-      "providerPlugin": "awscloudformation",
-      "service": "DynamoDB"
+  "parameters": {
+    "AMPLIFY_function_ccFncProfile_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "ccFncProfile"
+        }
+      ]
+    },
+    "AMPLIFY_function_ccFncProfile_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "ccFncProfile"
+        }
+      ]
     }
-  }
+  },
+  "storage": {}
 }

@@ -9,14 +9,22 @@
       "UnauthRoleName": "amplify-crudconnectwebapp-dev-232001-unauthRole",
       "StackName": "amplify-crudconnectwebapp-dev-232001",
       "StackId": "arn:aws:cloudformation:us-east-1:205254036537:stack/amplify-crudconnectwebapp-dev-232001/f2a64010-3f96-11ee-a5cb-0e56311d0e19",
-      "AmplifyAppId": "d13krhfnbqadjn"
+      "AmplifyAppId": "d13krhfnbqadjn",
+      "APIGatewayAuthURL": "https://s3.amazonaws.com/amplify-crudconnectwebapp-dev-232001-deployment/amplify-cfn-templates/api/APIGatewayAuthStack.json"
     },
     "categories": {
       "auth": {
         "crudconnectwebappf8fbcee2": {}
       },
       "function": {
-        "fncProfile": {}
+        "fncProfile": {},
+        "ccFncProfile": {
+          "deploymentBucketName": "amplify-crudconnectwebapp-dev-232001-deployment",
+          "s3Key": "amplify-builds/ccFncProfile-48654f447679546c7650-build.zip"
+        }
+      },
+      "api": {
+        "apiProfile": {}
       }
     }
   }
