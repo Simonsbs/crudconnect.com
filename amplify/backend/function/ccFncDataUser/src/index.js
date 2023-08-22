@@ -177,8 +177,6 @@ const updateUser = async (event, tableName) => {
 const deleteUser = async (event, tableName) => {
   const userId = event.pathParameters.id;
 
-  console.log(`Deleting user ${userId}`);
-
   await dynamo
     .delete({
       TableName: tableName,

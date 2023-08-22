@@ -11,10 +11,10 @@
     "env": {
       "Type": "String"
     },
-    "apiProfile": {
+    "apiData": {
       "Type": "String"
     },
-    "apiData": {
+    "apiProfile": {
       "Type": "String"
     }
   },

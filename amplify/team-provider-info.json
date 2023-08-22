@@ -32,5 +32,38 @@
         "apiData": {}
       }
     }
+  },
+  "newdev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-crudconnectwebapp-newdev-154144-authRole",
+      "UnauthRoleArn": "arn:aws:iam::205254036537:role/amplify-crudconnectwebapp-newdev-154144-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::205254036537:role/amplify-crudconnectwebapp-newdev-154144-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
+      "UnauthRoleName": "amplify-crudconnectwebapp-newdev-154144-unauthRole",
+      "StackName": "amplify-crudconnectwebapp-newdev-154144",
+      "StackId": "arn:aws:cloudformation:us-east-1:205254036537:stack/amplify-crudconnectwebapp-newdev-154144/41471840-40e9-11ee-9359-0a39bdf00e91",
+      "AmplifyAppId": "d13krhfnbqadjn",
+      "APIGatewayAuthURL": "https://s3.amazonaws.com/amplify-crudconnectwebapp-newdev-154144-deployment/amplify-cfn-templates/api/APIGatewayAuthStack.json"
+    },
+    "categories": {
+      "auth": {
+        "crudconnectwebappf8fbcee2": {}
+      },
+      "function": {
+        "ccFncDataUser": {
+          "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
+          "s3Key": "amplify-builds/ccFncDataUser-30466936337775744c58-build.zip"
+        },
+        "ccFncProfile": {
+          "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
+          "s3Key": "amplify-builds/ccFncProfile-3337307850477238646c-build.zip"
+        }
+      },
+      "api": {
+        "apiData": {},
+        "apiProfile": {}
+      }
+    }
   }
 }
