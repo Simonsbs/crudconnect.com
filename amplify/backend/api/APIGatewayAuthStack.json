@@ -13,6 +13,9 @@
     },
     "apiProfile": {
       "Type": "String"
+    },
+    "apiData": {
+      "Type": "String"
     }
   },
   "Conditions": {

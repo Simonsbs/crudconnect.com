@@ -1,5 +1,19 @@
 {
   "api": {
+    "apiData": {
+      "dependsOn": [
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "ccFncDataUser"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "API Gateway"
+    },
     "apiProfile": {
       "dependsOn": [
         {
@@ -44,6 +58,11 @@
     }
   },
   "function": {
+    "ccFncDataUser": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
     "ccFncProfile": {
       "build": true,
       "providerPlugin": "awscloudformation",
@@ -51,6 +70,22 @@
     }
   },
   "parameters": {
+    "AMPLIFY_function_ccFncDataUser_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "ccFncDataUser"
+        }
+      ]
+    },
+    "AMPLIFY_function_ccFncDataUser_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "ccFncDataUser"
+        }
+      ]
+    },
     "AMPLIFY_function_ccFncProfile_deploymentBucketName": {
       "usedBy": [
         {

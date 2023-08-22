@@ -20,11 +20,16 @@
         "fncProfile": {},
         "ccFncProfile": {
           "deploymentBucketName": "amplify-crudconnectwebapp-dev-232001-deployment",
-          "s3Key": "amplify-builds/ccFncProfile-48654f447679546c7650-build.zip"
+          "s3Key": "amplify-builds/ccFncProfile-3337307850477238646c-build.zip"
+        },
+        "ccFncDataUser": {
+          "deploymentBucketName": "amplify-crudconnectwebapp-dev-232001-deployment",
+          "s3Key": "amplify-builds/ccFncDataUser-30466936337775744c58-build.zip"
         }
       },
       "api": {
-        "apiProfile": {}
+        "apiProfile": {},
+        "apiData": {}
       }
     }
   }
