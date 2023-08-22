@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { API } from "aws-amplify";
-import { Form, Button, Table } from "react-bootstrap";
+import { Form, Button, Table, Modal } from "react-bootstrap";
 import { useAuthenticator } from "@aws-amplify/ui-react-core";
 
 function DataUsers() {
   const [users, setUsers] = useState([]);
-  const [editingIndex, setEditingIndex] = useState(null);
+  const [editingUser, setEditingUser] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteUserId, setDeleteUserId] = useState(null);
   const { user } = useAuthenticator((context) => [context.user]);
 
   const accountID = user && user.attributes && user.attributes.sub;
@@ -20,27 +23,47 @@ function DataUsers() {
   };
 
   const handleAddUser = () => {
-    setUsers([
-      ...users,
-      { id: "", userName: "", password: "", email: "", accountID },
-    ]);
+    setEditingUser({
+      id: "",
+      userName: "",
+      password: "",
+      email: "",
+      accountID,
+    });
+    setShowEditModal(true);
   };
 
-  const handleSaveUser = async (user, index) => {
-    const userData = { ...user, accountID }; // Adding accountID to the user data
+  const handleSaveUser = async () => {
+    if (editingUser.email && !editingUser.email.includes("@")) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
+    if (editingUser.password && editingUser.password.length < 6) {
+      alert("Password should be at least 6 characters long.");
+      return;
+    }
+
+    const userData = { ...editingUser, accountID };
 
     if (userData.id) {
-      await API.put("apiData", `/user/${userData.id}`, { body: userData });
+      await API.put("apiData", `/user?id=${userData.id}`, { body: userData });
     } else {
       await API.post("apiData", "/user", { body: userData });
-      fetchUsers();
     }
-    setEditingIndex(null);
+    fetchUsers();
+    setShowEditModal(false);
   };
 
-  const handleDeleteUser = async (id) => {
-    await API.del("apiData", `/user/${id}`);
+  const handleDeleteUserConfirmation = (id) => {
+    setDeleteUserId(id);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteUser = async () => {
+    await API.del("apiData", `/user?id=${deleteUserId}`);
     fetchUsers();
+    setShowDeleteModal(false);
   };
 
   return (
@@ -58,88 +81,103 @@ function DataUsers() {
         <tbody>
           {users.map((user, index) => (
             <tr key={index}>
+              <td>{user.userName}</td>
+              <td>••••••</td>
+              <td>{user.email}</td>
               <td>
-                {editingIndex === index ? (
-                  <Form.Control
-                    value={user.userName}
-                    onChange={(e) => {
-                      const newUser = { ...user, userName: e.target.value };
-                      const newUsers = [...users];
-                      newUsers[index] = newUser;
-                      setUsers(newUsers);
-                    }}
-                  />
-                ) : (
-                  user.userName
-                )}
-              </td>
-              <td>
-                {editingIndex === index ? (
-                  <Form.Control
-                    type="password"
-                    value={user.password}
-                    onChange={(e) => {
-                      const newUser = { ...user, password: e.target.value };
-                      const newUsers = [...users];
-                      newUsers[index] = newUser;
-                      setUsers(newUsers);
-                    }}
-                  />
-                ) : (
-                  "••••••"
-                )}
-              </td>
-              <td>
-                {editingIndex === index ? (
-                  <Form.Control
-                    value={user.email || ""}
-                    onChange={(e) => {
-                      const newUser = { ...user, email: e.target.value };
-                      const newUsers = [...users];
-                      newUsers[index] = newUser;
-                      setUsers(newUsers);
-                    }}
-                  />
-                ) : (
-                  user.email
-                )}
-              </td>
-              <td>
-                {editingIndex === index ? (
-                  <Button
-                    variant="success"
-                    onClick={() => handleSaveUser(user, index)}
-                  >
-                    Save
-                  </Button>
-                ) : (
-                  <>
-                    <Button
-                      variant="warning"
-                      onClick={() => setEditingIndex(index)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="danger"
-                      onClick={() => handleDeleteUser(user.id)}
-                    >
-                      Delete
-                    </Button>
-                  </>
-                )}
+                <Button
+                  variant="warning"
+                  onClick={() => {
+                    setEditingUser(user);
+                    setShowEditModal(true);
+                  }}
+                >
+                  Edit
+                </Button>
+                <Button
+                  variant="danger"
+                  onClick={() => handleDeleteUserConfirmation(user.id)}
+                >
+                  Delete
+                </Button>
               </td>
             </tr>
           ))}
-          <tr>
-            <td colSpan="5">
-              <Button variant="primary" onClick={handleAddUser}>
-                Add User
-              </Button>
-            </td>
-          </tr>
         </tbody>
       </Table>
+      <Button variant="primary" onClick={handleAddUser}>
+        Add User
+      </Button>
+
+      {/* Edit/Add User Modal */}
+      <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {editingUser?.id ? "Edit User" : "Add User"}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {/* Form controls for editing/adding user */}
+          <Form.Group>
+            <Form.Label>Username</Form.Label>
+            <Form.Control
+              value={editingUser?.userName || ""}
+              onChange={(e) =>
+                setEditingUser((prev) => ({
+                  ...prev,
+                  userName: e.target.value,
+                }))
+              }
+            />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Password</Form.Label>
+            <Form.Control
+              type="password"
+              value={editingUser?.password || ""}
+              onChange={(e) =>
+                setEditingUser((prev) => ({
+                  ...prev,
+                  password: e.target.value,
+                }))
+              }
+            />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Email</Form.Label>
+            <Form.Control
+              value={editingUser?.email || ""}
+              onChange={(e) =>
+                setEditingUser((prev) => ({ ...prev, email: e.target.value }))
+              }
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleSaveUser}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Deletion</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Are you sure you want to delete this user?</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleDeleteUser}>
+            Delete
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

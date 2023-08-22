@@ -12,7 +12,7 @@ exports.handler = async (event) => {
   try {
     switch (event.httpMethod) {
       case "GET":
-        if (event.pathParameters && event.pathParameters.id) {
+        if (event.queryStringParameters && event.queryStringParameters.id) {
           return await getUser(event, tableName);
         } else if (
           event.queryStringParameters &&
@@ -20,7 +20,7 @@ exports.handler = async (event) => {
         ) {
           return await getUsersByAccountID(event, tableName);
         } else {
-          return await getAllUsers(tableName);
+          return await getAllUsers(event, tableName);
         }
       case "POST":
         return await createUser(event, tableName);
@@ -45,7 +45,7 @@ const corsHeaders = () => ({
   "Access-Control-Allow-Headers": "*",
 });
 
-const getAllUsers = async (tableName) => {
+const getAllUsers = async (event, tableName) => {
   const result = await dynamo
     .scan({
       TableName: tableName,
@@ -66,7 +66,7 @@ const getAllUsers = async (tableName) => {
 };
 
 const getUser = async (event, tableName) => {
-  const userId = event.pathParameters.id;
+  const userId = event.queryStringParameters.id;
 
   const result = await dynamo
     .get({
@@ -143,12 +143,12 @@ const createUser = async (event, tableName) => {
 };
 
 const updateUser = async (event, tableName) => {
-  const userId = event.pathParameters.id;
+  const userId = event.queryStringParameters.id;
   const userUpdates = JSON.parse(event.body);
 
-  // Password and accountID shouldn't be updated without specific logic
-  delete userUpdates.password;
+  //delete userUpdates.password;
   delete userUpdates.accountID;
+  delete userUpdates.id;
 
   const updateExpression = Object.keys(userUpdates)
     .map((key) => `${key} = :${key}`)
@@ -175,7 +175,7 @@ const updateUser = async (event, tableName) => {
 };
 
 const deleteUser = async (event, tableName) => {
-  const userId = event.pathParameters.id;
+  const userId = event.queryStringParameters.id;
 
   await dynamo
     .delete({

@@ -1,8 +1,8 @@
 {
   "version": 1,
   "paths": {
-    "/user/{id}": {
-      "name": "/user/{id}",
+    "/user": {
+      "name": "/user",
       "lambdaFunction": "ccFncDataUser",
       "permissions": {
         "setting": "open"

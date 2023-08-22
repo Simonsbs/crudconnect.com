@@ -83,11 +83,7 @@ app.get("/profile", async function (req, res) {
       await dynamoDb.put(putParams).promise();
     }
 
-    res.json({
-      success: "get call succeed!",
-      url: req.url,
-      body: profile,
-    });
+    res.json(profile);
   } catch (error) {
     res.status(500).json({
       error: "Failed to fetch or create profile",
