@@ -1,28 +1,28 @@
 import Gravatar from "react-gravatar";
 import { Link } from "react-router-dom";
 import { useAuthenticator } from "@aws-amplify/ui-react";
-import { API } from "aws-amplify";
-import { useEffect } from "react";
+//import { API } from "aws-amplify";
+//import { useEffect } from "react";
 
 function Header() {
   const { user, signOut } = useAuthenticator((context) => [context.user]);
 
-  useEffect(() => {
-    if (user) {
-      fetchProfiles();
-    }
-  }, [user]);
+  // useEffect(() => {
+  //   if (user) {
+  //     fetchProfiles();
+  //   }
+  // }, [user]);
 
-  const fetchProfiles = async () => {
-    try {
-      console.log("/profile");
+  // const fetchProfiles = async () => {
+  //   try {
+  //     console.log("/profile");
 
-      const response = await API.get("apiProfile", "/profile");
-      console.log(response);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  //     const response = await API.get("apiProfile", "/profile");
+  //     console.log(response);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
 
   return (
     <header className="p-3 border-bottom">

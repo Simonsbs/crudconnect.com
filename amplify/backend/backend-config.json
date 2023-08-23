@@ -1,20 +1,6 @@
 {
   "api": {
-    "apiData": {
-      "dependsOn": [
-        {
-          "attributes": [
-            "Name",
-            "Arn"
-          ],
-          "category": "function",
-          "resourceName": "ccFncDataUser"
-        }
-      ],
-      "providerPlugin": "awscloudformation",
-      "service": "API Gateway"
-    },
-    "apiProfile": {
+    "ccApiBack": {
       "dependsOn": [
         {
           "attributes": [
@@ -23,6 +9,14 @@
           ],
           "category": "function",
           "resourceName": "ccFncProfile"
+        },
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "ccFncProject"
         }
       ],
       "providerPlugin": "awscloudformation",
@@ -58,34 +52,46 @@
     }
   },
   "function": {
-    "ccFncDataUser": {
+    "ccFncProfile": {
       "build": true,
+      "dependsOn": [
+        {
+          "attributeEnvMap": {
+            "Arn": "TABLE_ARN",
+            "Name": "TABLE_NAME"
+          },
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "storage",
+          "resourceName": "ccTblProfile"
+        }
+      ],
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
     },
-    "ccFncProfile": {
+    "ccFncProject": {
       "build": true,
+      "dependsOn": [
+        {
+          "attributeEnvMap": {
+            "Arn": "TABLE_ARN",
+            "Name": "TABLE_NAME"
+          },
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "storage",
+          "resourceName": "ccTblProject"
+        }
+      ],
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
     }
   },
   "parameters": {
-    "AMPLIFY_function_ccFncDataUser_deploymentBucketName": {
-      "usedBy": [
-        {
-          "category": "function",
-          "resourceName": "ccFncDataUser"
-        }
-      ]
-    },
-    "AMPLIFY_function_ccFncDataUser_s3Key": {
-      "usedBy": [
-        {
-          "category": "function",
-          "resourceName": "ccFncDataUser"
-        }
-      ]
-    },
     "AMPLIFY_function_ccFncProfile_deploymentBucketName": {
       "usedBy": [
         {
@@ -101,7 +107,32 @@
           "resourceName": "ccFncProfile"
         }
       ]
+    },
+    "AMPLIFY_function_ccFncProject_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "ccFncProject"
+        }
+      ]
+    },
+    "AMPLIFY_function_ccFncProject_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "ccFncProject"
+        }
+      ]
     }
   },
-  "storage": {}
+  "storage": {
+    "ccTblProfile": {
+      "providerPlugin": "awscloudformation",
+      "service": "DynamoDB"
+    },
+    "ccTblProject": {
+      "providerPlugin": "awscloudformation",
+      "service": "DynamoDB"
+    }
+  }
 }

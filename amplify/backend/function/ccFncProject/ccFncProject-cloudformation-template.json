@@ -15,6 +15,14 @@
     },
     "s3Key": {
       "Type": "String"
+    },
+    "storageccTblProjectName": {
+      "Type": "String",
+      "Default": "storageccTblProjectName"
+    },
+    "storageccTblProjectArn": {
+      "Type": "String",
+      "Default": "storageccTblProjectArn"
     }
   },
   "Conditions": {
@@ -47,12 +55,12 @@
         "FunctionName": {
           "Fn::If": [
             "ShouldNotCreateEnvResources",
-            "ccFncDataUser",
+            "ccFncProject",
             {
               "Fn::Join": [
                 "",
                 [
-                  "ccFncDataUser",
+                  "ccFncProject",
                   "-",
                   {
                     "Ref": "env"
@@ -89,12 +97,12 @@
         "RoleName": {
           "Fn::If": [
             "ShouldNotCreateEnvResources",
-            "crudconnectwebappLambdaRole3494d09d",
+            "crudconnectwebappLambdaRoled8799285",
             {
               "Fn::Join": [
                 "",
                 [
-                  "crudconnectwebappLambdaRole3494d09d",
+                  "crudconnectwebappLambdaRoled8799285",
                   "-",
                   {
                     "Ref": "env"
@@ -160,6 +168,34 @@
                   }
                 ]
               }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "dynamodb:DescribeTable",
+                "dynamodb:GetItem",
+                "dynamodb:Query",
+                "dynamodb:Scan",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem"
+              ],
+              "Resource": [
+                {
+                  "Ref": "storageccTblProjectArn"
+                },
+                {
+                  "Fn::Join": [
+                    "/",
+                    [
+                      {
+                        "Ref": "storageccTblProjectArn"
+                      },
+                      "index/*"
+                    ]
+                  ]
+                }
+              ]
             }
           ]
         }

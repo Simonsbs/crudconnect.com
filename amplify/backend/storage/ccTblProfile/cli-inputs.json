@@ -1,0 +1,10 @@
+{
+  "resourceName": "ccTblProfile",
+  "tableName": "ccTblProfile",
+  "partitionKey": {
+    "fieldName": "UserID",
+    "fieldType": "string"
+  },
+  "gsi": [],
+  "triggerFunctions": []
+}

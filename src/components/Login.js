@@ -10,7 +10,7 @@ export function Login() {
 
   useEffect(() => {
     if (route === "authenticated") {
-      navigate(from, { replace: true });
+      navigate("/admin");
     }
   }, [route, navigate, from]);
 

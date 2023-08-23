@@ -13,26 +13,28 @@ const {
   GetCommand,
   PutCommand,
   QueryCommand,
+  ScanCommand,
 } = require("@aws-sdk/lib-dynamodb");
 const awsServerlessExpressMiddleware = require("aws-serverless-express/middleware");
 const bodyParser = require("body-parser");
 const express = require("express");
+const { v4: uuidv4 } = require("uuid");
 
 const ddbClient = new DynamoDBClient({ region: process.env.TABLE_REGION });
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
 
-let tableName = "ccTblProfile";
+let tableName = "ccTblProject";
 if (process.env.ENV && process.env.ENV !== "NONE") {
   tableName = tableName + "-" + process.env.ENV;
 }
 
 const userIdPresent = false; // TODO: update in case is required to use that definition
-const partitionKeyName = "UserID";
+const partitionKeyName = "ID";
 const partitionKeyType = "S";
-const sortKeyName = "";
-const sortKeyType = "";
+const sortKeyName = "UserID";
+const sortKeyType = "S";
 const hasSortKey = sortKeyName !== "";
-const path = "/profile";
+const path = "/project";
 const UNAUTH = "UNAUTH";
 const hashKeyPath = "/:" + partitionKeyName;
 const sortKeyPath = hasSortKey ? "/:" + sortKeyName : "";
@@ -63,35 +65,38 @@ const convertUrlType = (param, type) => {
  * HTTP Get method for list objects *
  ********************************/
 
-app.get(path + hashKeyPath, async function (req, res) {
-  const condition = {};
-  condition[partitionKeyName] = {
-    ComparisonOperator: "EQ",
-  };
-
-  if (userIdPresent && req.apiGateway) {
-    condition[partitionKeyName]["AttributeValueList"] = [
-      req.apiGateway.event.requestContext.identity.cognitoIdentityId || UNAUTH,
-    ];
-  } else {
-    try {
-      condition[partitionKeyName]["AttributeValueList"] = [
-        convertUrlType(req.params[partitionKeyName], partitionKeyType),
-      ];
-    } catch (err) {
-      res.statusCode = 500;
-      res.json({ error: "Wrong column type " + err });
-    }
+function getUserFromRequest(req) {
+  try {
+    return req.apiGateway.event.requestContext.identity.cognitoAuthenticationProvider.split(
+      ":"
+    )[2];
+  } catch {
+    return null;
   }
+}
 
-  let queryParams = {
+// 1. Get all projects using the authorization sub (UserID)
+app.get(path, async function (req, res) {
+  let userId = getUserFromRequest(req) || UNAUTH;
+
+  let scanParams = {
     TableName: tableName,
-    KeyConditions: condition,
+    FilterExpression: "#UserID = :UserIDVal",
+    ExpressionAttributeNames: {
+      "#UserID": sortKeyName,
+    },
+    ExpressionAttributeValues: {
+      ":UserIDVal": userId,
+    },
   };
 
   try {
-    const data = await ddbDocClient.send(new QueryCommand(queryParams));
-    res.json(data.Items);
+    const data = await ddbDocClient.send(new ScanCommand(scanParams));
+    res.json({
+      userId,
+      scanParams,
+      data,
+    });
   } catch (err) {
     res.statusCode = 500;
     res.json({ error: "Could not load items: " + err.message });
@@ -102,66 +107,38 @@ app.get(path + hashKeyPath, async function (req, res) {
  * HTTP Get method for get single object *
  *****************************************/
 
-app.get(
-  path + "/object" + hashKeyPath + sortKeyPath,
-  async function (req, res) {
-    const params = {};
-    if (userIdPresent && req.apiGateway) {
-      params[partitionKeyName] =
-        req.apiGateway.event.requestContext.identity.cognitoIdentityId ||
-        UNAUTH;
+// 2. Get a single project using the project id (ID) and verify it belongs to the UserID that is in the authorization sub
+app.get(path + hashKeyPath, async function (req, res) {
+  const userId = getUserFromRequest(req) || UNAUTH;
+  const projectId = req.params[partitionKeyName];
+
+  let getItemParams = {
+    TableName: tableName,
+    Key: {
+      [partitionKeyName]: projectId,
+      [sortKeyName]: userId,
+    },
+  };
+
+  try {
+    const data = await ddbDocClient.send(new GetCommand(getItemParams));
+    if (data.Item) {
+      res.json(data.Item);
     } else {
-      params[partitionKeyName] = req.params[partitionKeyName];
-      try {
-        params[partitionKeyName] = convertUrlType(
-          req.params[partitionKeyName],
-          partitionKeyType
-        );
-      } catch (err) {
-        res.statusCode = 500;
-        res.json({ error: "Wrong column type " + err });
-      }
+      res.json(data);
     }
-    if (hasSortKey) {
-      try {
-        params[sortKeyName] = convertUrlType(
-          req.params[sortKeyName],
-          sortKeyType
-        );
-      } catch (err) {
-        res.statusCode = 500;
-        res.json({ error: "Wrong column type " + err });
-      }
-    }
-
-    let getItemParams = {
-      TableName: tableName,
-      Key: params,
-    };
-
-    try {
-      const data = await ddbDocClient.send(new GetCommand(getItemParams));
-      if (data.Item) {
-        res.json(data.Item);
-      } else {
-        res.json(data);
-      }
-    } catch (err) {
-      res.statusCode = 500;
-      res.json({ error: "Could not load items: " + err.message });
-    }
+  } catch (err) {
+    res.statusCode = 500;
+    res.json({ error: "Could not load items: " + err.message });
   }
-);
+});
 
 /************************************
  * HTTP put method for insert object *
  *************************************/
 
 app.put(path, async function (req, res) {
-  if (userIdPresent) {
-    req.body["userId"] =
-      req.apiGateway.event.requestContext.identity.cognitoIdentityId || UNAUTH;
-  }
+  req.body["UserID"] = getUserFromRequest(req);
 
   let putItemParams = {
     TableName: tableName,
@@ -181,10 +158,8 @@ app.put(path, async function (req, res) {
  *************************************/
 
 app.post(path, async function (req, res) {
-  if (userIdPresent) {
-    req.body["userId"] =
-      req.apiGateway.event.requestContext.identity.cognitoIdentityId || UNAUTH;
-  }
+  req.body["ID"] = uuidv4();
+  req.body["UserID"] = getUserFromRequest(req);
 
   let putItemParams = {
     TableName: tableName,
@@ -208,9 +183,7 @@ app.delete(
   async function (req, res) {
     const params = {};
     if (userIdPresent && req.apiGateway) {
-      params[partitionKeyName] =
-        req.apiGateway.event.requestContext.identity.cognitoIdentityId ||
-        UNAUTH;
+      params[partitionKeyName] = getUserFromRequest(req) || UNAUTH;
     } else {
       params[partitionKeyName] = req.params[partitionKeyName];
       try {

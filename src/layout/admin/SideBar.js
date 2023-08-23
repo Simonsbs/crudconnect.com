@@ -39,6 +39,15 @@ function SideBar() {
             <li className="nav-item">
               <Link
                 className="nav-link d-flex align-items-center gap-2"
+                to="/admin/projects"
+              >
+                <i className="bi bi-kanban"></i>
+                Projects
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                className="nav-link d-flex align-items-center gap-2"
                 to="/admin/users"
               >
                 <i className="bi bi-people"></i>
