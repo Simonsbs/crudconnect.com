@@ -9,8 +9,10 @@ function UserProfile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await API.get("apiProfile", "/profile");
-        setProfile(response);
+        const response = await API.get("ccApiBack", "/profile");
+        if (response) {
+          setProfile(response);
+        }
       } catch (error) {
         console.error("Error fetching profile:", error);
       }
@@ -29,7 +31,9 @@ function UserProfile() {
 
   const handleSave = async () => {
     try {
-      await API.put("apiProfile", "/profile", { body: profile });
+      await API.put("ccApiBack", "/profile", { body: profile });
+      console.log("Profile updated successfully!");
+      console.log(profile);
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -44,7 +48,7 @@ function UserProfile() {
       <Form>
         <Form.Group>
           <Form.Label>ID</Form.Label>
-          <Form.Control type="text" value={profile.id} readOnly />
+          <Form.Control type="text" value={profile.UserID} readOnly />
         </Form.Group>
 
         <Form.Group>

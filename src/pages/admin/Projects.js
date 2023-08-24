@@ -2,27 +2,26 @@ import React, { useState, useEffect } from "react";
 import { API } from "aws-amplify";
 import { Form, Button, Table, Modal } from "react-bootstrap";
 import { useAuthenticator } from "@aws-amplify/ui-react-core";
+import { Loader } from "@aws-amplify/ui-react";
 
 function Projects() {
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState();
   const [editingProject, setEditingProject] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteID, setDeleteID] = useState(null);
   const { user } = useAuthenticator((context) => [context.user]);
 
-  const UserID = user && user.attributes && user.attributes.sub;
+  const UserID = user?.attributes?.sub;
 
   const fetchProjects = async () => {
-    //console.log("fetchProjects");
     const response = await API.get("ccApiBack", `/project`);
-    console.log(response);
     setProjects(response.data.Items);
   };
 
   useEffect(() => {
     fetchProjects();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleAddProject = () => {
     setEditingProject({
@@ -39,11 +38,20 @@ function Projects() {
 
     if (projectData.ID) {
       await API.put("ccApiBack", "/project", { body: projectData });
+      setProjects((prevProjects) =>
+        prevProjects.map((proj) =>
+          proj.ID === projectData.ID ? projectData : proj
+        )
+      );
     } else {
-      projectData.ID = "N/A";
-      await API.post("ccApiBack", "/project", { body: projectData });
+      const newProject = await API.post("ccApiBack", "/project", {
+        body: projectData,
+      });
+
+      console.log(newProject);
+
+      setProjects((prevProjects) => [...prevProjects, newProject]);
     }
-    fetchProjects();
     setShowEditModal(false);
   };
 
@@ -54,7 +62,9 @@ function Projects() {
 
   const handleDeleteProject = async () => {
     await API.del("ccApiBack", `/project/object/${deleteID}/${UserID}`);
-    fetchProjects();
+    setProjects((prevProjects) =>
+      prevProjects.filter((proj) => proj.ID !== deleteID)
+    );
     setShowDeleteModal(false);
   };
 
@@ -72,32 +82,40 @@ function Projects() {
           </tr>
         </thead>
         <tbody>
-          {projects.map((project, index) => (
-            <tr key={index}>
-              <td>{project.ID}</td>
-              {/* <td>{project.UserID}</td> */}
-              <td>{project.Name}</td>
-              <td>{project.Description}</td>
-              <td>
-                <Button
-                  variant="warning"
-                  className="me-2"
-                  onClick={() => {
-                    setEditingProject(project);
-                    setShowEditModal(true);
-                  }}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="danger"
-                  onClick={() => handleDeleteProjectConfirmation(project.ID)}
-                >
-                  Delete
-                </Button>
+          {projects ? (
+            projects.map((project, index) => (
+              <tr key={index}>
+                <td>{project.ID}</td>
+                {/* <td>{project.UserID}</td> */}
+                <td>{project.Name}</td>
+                <td>{project.Description}</td>
+                <td>
+                  <Button
+                    variant="warning"
+                    className="me-2"
+                    onClick={() => {
+                      setEditingProject(project);
+                      setShowEditModal(true);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={() => handleDeleteProjectConfirmation(project.ID)}
+                  >
+                    Delete
+                  </Button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={4}>
+                <Loader variation="linear" />
               </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </Table>
       <Button variant="primary" onClick={handleAddProject}>

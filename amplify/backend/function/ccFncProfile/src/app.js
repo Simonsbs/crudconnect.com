@@ -59,109 +59,59 @@ const convertUrlType = (param, type) => {
   }
 };
 
-/********************************
- * HTTP Get method for list objects *
- ********************************/
+function getUserFromRequest(req) {
+  try {
+    return req.apiGateway.event.requestContext.identity.cognitoAuthenticationProvider.split(
+      ":"
+    )[2];
+  } catch {
+    return null;
+  }
+}
 
-app.get(path + hashKeyPath, async function (req, res) {
-  const condition = {};
-  condition[partitionKeyName] = {
-    ComparisonOperator: "EQ",
-  };
+/*****************************************
+ * HTTP Get method for get single object *
+ *****************************************/
 
-  if (userIdPresent && req.apiGateway) {
-    condition[partitionKeyName]["AttributeValueList"] = [
-      req.apiGateway.event.requestContext.identity.cognitoIdentityId || UNAUTH,
-    ];
-  } else {
-    try {
-      condition[partitionKeyName]["AttributeValueList"] = [
-        convertUrlType(req.params[partitionKeyName], partitionKeyType),
-      ];
-    } catch (err) {
-      res.statusCode = 500;
-      res.json({ error: "Wrong column type " + err });
-    }
+app.get(path, async function (req, res) {
+  const params = {};
+
+  const userID = getUserFromRequest(req);
+
+  params[partitionKeyName] = userID;
+  try {
+    params[partitionKeyName] = convertUrlType(userID, partitionKeyType);
+  } catch (err) {
+    res.statusCode = 500;
+    res.json({ error: "Wrong column type " + err });
   }
 
-  let queryParams = {
+  let getItemParams = {
     TableName: tableName,
-    KeyConditions: condition,
+    Key: params,
   };
 
   try {
-    const data = await ddbDocClient.send(new QueryCommand(queryParams));
-    res.json(data.Items);
+    const data = await ddbDocClient.send(new GetCommand(getItemParams));
+    if (data.Item) {
+      res.json(data.Item);
+    } else {
+      res.json({ UserID: userID });
+    }
   } catch (err) {
     res.statusCode = 500;
     res.json({ error: "Could not load items: " + err.message });
   }
 });
 
-/*****************************************
- * HTTP Get method for get single object *
- *****************************************/
-
-app.get(
-  path + "/object" + hashKeyPath + sortKeyPath,
-  async function (req, res) {
-    const params = {};
-    if (userIdPresent && req.apiGateway) {
-      params[partitionKeyName] =
-        req.apiGateway.event.requestContext.identity.cognitoIdentityId ||
-        UNAUTH;
-    } else {
-      params[partitionKeyName] = req.params[partitionKeyName];
-      try {
-        params[partitionKeyName] = convertUrlType(
-          req.params[partitionKeyName],
-          partitionKeyType
-        );
-      } catch (err) {
-        res.statusCode = 500;
-        res.json({ error: "Wrong column type " + err });
-      }
-    }
-    if (hasSortKey) {
-      try {
-        params[sortKeyName] = convertUrlType(
-          req.params[sortKeyName],
-          sortKeyType
-        );
-      } catch (err) {
-        res.statusCode = 500;
-        res.json({ error: "Wrong column type " + err });
-      }
-    }
-
-    let getItemParams = {
-      TableName: tableName,
-      Key: params,
-    };
-
-    try {
-      const data = await ddbDocClient.send(new GetCommand(getItemParams));
-      if (data.Item) {
-        res.json(data.Item);
-      } else {
-        res.json(data);
-      }
-    } catch (err) {
-      res.statusCode = 500;
-      res.json({ error: "Could not load items: " + err.message });
-    }
-  }
-);
-
 /************************************
  * HTTP put method for insert object *
  *************************************/
 
 app.put(path, async function (req, res) {
-  if (userIdPresent) {
-    req.body["userId"] =
-      req.apiGateway.event.requestContext.identity.cognitoIdentityId || UNAUTH;
-  }
+  const userID = getUserFromRequest(req);
+
+  req.body["UserId"] = userID;
 
   let putItemParams = {
     TableName: tableName,
@@ -175,80 +125,6 @@ app.put(path, async function (req, res) {
     res.json({ error: err, url: req.url, body: req.body });
   }
 });
-
-/************************************
- * HTTP post method for insert object *
- *************************************/
-
-app.post(path, async function (req, res) {
-  if (userIdPresent) {
-    req.body["userId"] =
-      req.apiGateway.event.requestContext.identity.cognitoIdentityId || UNAUTH;
-  }
-
-  let putItemParams = {
-    TableName: tableName,
-    Item: req.body,
-  };
-  try {
-    let data = await ddbDocClient.send(new PutCommand(putItemParams));
-    res.json({ success: "post call succeed!", url: req.url, data: data });
-  } catch (err) {
-    res.statusCode = 500;
-    res.json({ error: err, url: req.url, body: req.body });
-  }
-});
-
-/**************************************
- * HTTP remove method to delete object *
- ***************************************/
-
-app.delete(
-  path + "/object" + hashKeyPath + sortKeyPath,
-  async function (req, res) {
-    const params = {};
-    if (userIdPresent && req.apiGateway) {
-      params[partitionKeyName] =
-        req.apiGateway.event.requestContext.identity.cognitoIdentityId ||
-        UNAUTH;
-    } else {
-      params[partitionKeyName] = req.params[partitionKeyName];
-      try {
-        params[partitionKeyName] = convertUrlType(
-          req.params[partitionKeyName],
-          partitionKeyType
-        );
-      } catch (err) {
-        res.statusCode = 500;
-        res.json({ error: "Wrong column type " + err });
-      }
-    }
-    if (hasSortKey) {
-      try {
-        params[sortKeyName] = convertUrlType(
-          req.params[sortKeyName],
-          sortKeyType
-        );
-      } catch (err) {
-        res.statusCode = 500;
-        res.json({ error: "Wrong column type " + err });
-      }
-    }
-
-    let removeItemParams = {
-      TableName: tableName,
-      Key: params,
-    };
-
-    try {
-      let data = await ddbDocClient.send(new DeleteCommand(removeItemParams));
-      res.json({ url: req.url, data: data });
-    } catch (err) {
-      res.statusCode = 500;
-      res.json({ error: err, url: req.url });
-    }
-  }
-);
 
 app.listen(3000, function () {
   console.log("App started");
