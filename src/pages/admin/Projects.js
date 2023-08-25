@@ -16,7 +16,7 @@ function Projects() {
 
   const fetchProjects = async () => {
     const response = await API.get("ccApiBack", `/project`);
-    setProjects(response.data.Items);
+    setProjects(response);
   };
 
   useEffect(() => {

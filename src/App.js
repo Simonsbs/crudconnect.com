@@ -16,8 +16,8 @@ import { Authenticator } from "@aws-amplify/ui-react";
 import { Login } from "./components/Login";
 import { RequireAuth } from "./components/RequireAuth";
 import ProtectedAdmin from "./layout/ProtectedAdmin";
-import DataUsers from "./pages/admin/DataUsers";
 import Projects from "./pages/admin/Projects";
+import ProjectUsers from "./pages/admin/ProjectUsers";
 
 Amplify.configure(config);
 
@@ -43,7 +43,7 @@ function App() {
             <Route path="profile" element={<UserProfile />} />
             <Route path="projects" element={<Projects />} />
             <Route path="data" element={<UserData />} />
-            <Route path="users" element={<DataUsers />} />
+            <Route path="users" element={<ProjectUsers />} />
             <Route path="token-manager" element={<UserTokenManager />} />
           </Route>
         </Routes>

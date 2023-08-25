@@ -91,11 +91,7 @@ app.get(path, async function (req, res) {
 
   try {
     const data = await ddbDocClient.send(new ScanCommand(scanParams));
-    res.json({
-      userId,
-      scanParams,
-      data,
-    });
+    res.json(data.Items);
   } catch (err) {
     res.statusCode = 500;
     res.json({ error: "Could not load items: " + err.message });
