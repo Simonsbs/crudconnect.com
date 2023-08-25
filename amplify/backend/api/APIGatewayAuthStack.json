@@ -13,6 +13,9 @@
     },
     "ccApiBack": {
       "Type": "String"
+    },
+    "ccApiFront": {
+      "Type": "String"
     }
   },
   "Conditions": {

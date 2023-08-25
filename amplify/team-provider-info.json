@@ -53,19 +53,25 @@
       "function": {
         "ccFncProfile": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
-          "s3Key": "amplify-builds/ccFncProfile-4e50636d736d504f5254-build.zip"
+          "s3Key": "amplify-builds/ccFncProfile-7a44724978316f424d63-build.zip"
         },
         "ccFncProject": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
           "s3Key": "amplify-builds/ccFncProject-7a35346d746e4a645044-build.zip"
+        },
+        "ccFncUser": {
+          "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
+          "s3Key": "amplify-builds/ccFncUser-412f4f67375167597853-build.zip"
         }
       },
       "api": {
-        "ccApiBack": {}
+        "ccApiBack": {},
+        "ccApiFront": {}
       },
       "storage": {
         "ccTblProfile": {},
-        "ccTblProject": {}
+        "ccTblProject": {},
+        "ccTblUser": {}
       }
     }
   }

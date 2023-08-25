@@ -21,6 +21,20 @@
       ],
       "providerPlugin": "awscloudformation",
       "service": "API Gateway"
+    },
+    "ccApiFront": {
+      "dependsOn": [
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "ccFncUser"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "API Gateway"
     }
   },
   "auth": {
@@ -89,6 +103,25 @@
       ],
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
+    },
+    "ccFncUser": {
+      "build": true,
+      "dependsOn": [
+        {
+          "attributeEnvMap": {
+            "Arn": "TABLE_ARN",
+            "Name": "TABLE_NAME"
+          },
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "storage",
+          "resourceName": "ccTblUser"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
     }
   },
   "parameters": {
@@ -123,6 +156,22 @@
           "resourceName": "ccFncProject"
         }
       ]
+    },
+    "AMPLIFY_function_ccFncUser_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "ccFncUser"
+        }
+      ]
+    },
+    "AMPLIFY_function_ccFncUser_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "ccFncUser"
+        }
+      ]
     }
   },
   "storage": {
@@ -131,6 +180,10 @@
       "service": "DynamoDB"
     },
     "ccTblProject": {
+      "providerPlugin": "awscloudformation",
+      "service": "DynamoDB"
+    },
+    "ccTblUser": {
       "providerPlugin": "awscloudformation",
       "service": "DynamoDB"
     }

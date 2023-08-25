@@ -1,0 +1,14 @@
+{
+  "resourceName": "ccTblUser",
+  "tableName": "ccTblUser",
+  "partitionKey": {
+    "fieldName": "ProjectID",
+    "fieldType": "string"
+  },
+  "sortKey": {
+    "fieldName": "Email",
+    "fieldType": "string"
+  },
+  "gsi": [],
+  "triggerFunctions": []
+}
