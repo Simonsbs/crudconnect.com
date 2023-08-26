@@ -334,7 +334,7 @@ app.delete(
     };
 
     try {
-      let data = await ddbDocClient.send(new DeleteCommand(removeItemParams));
+      await ddbDocClient.send(new DeleteCommand(removeItemParams));
       res.json({ url: req.url });
     } catch (err) {
       res.statusCode = 500;

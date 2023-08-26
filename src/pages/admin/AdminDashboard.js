@@ -1,5 +1,5 @@
-import { API, Auth } from "aws-amplify";
-import { useEffect, useState } from "react";
+// import { API, Auth } from "aws-amplify";
+// import { useEffect, useState } from "react";
 
 function AdminDashboard() {
   // const [tmp, setTmp] = useState();
