@@ -18,9 +18,12 @@ const awsServerlessExpressMiddleware = require("aws-serverless-express/middlewar
 const bodyParser = require("body-parser");
 const express = require("express");
 const { v4: uuidv4 } = require("uuid");
+const jwt = require("jsonwebtoken");
+const { SecretsManager } = require("aws-sdk");
 
 const ddbClient = new DynamoDBClient({ region: process.env.TABLE_REGION });
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
+const secretsManager = new SecretsManager();
 
 let tableName = "ccTblUser";
 if (process.env.ENV && process.env.ENV !== "NONE") {
@@ -60,6 +63,72 @@ const convertUrlType = (param, type) => {
   }
 };
 
+const getJwtSecret = async () => {
+  const secretData = await secretsManager
+    .getSecretValue({ SecretId: "jwtSigningKey" })
+    .promise();
+  return JSON.parse(secretData.SecretString).ccJWTSecret;
+};
+
+const extractClaims = async (req) => {
+  // Check for Cognito authentication
+  if (req.apiGateway && req.apiGateway.event.requestContext.identity) {
+    return req.apiGateway.event.requestContext.identity;
+  }
+
+  // Check for JWT Bearer token
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.split(" ")[1];
+
+  if (!token) {
+    throw new Error("No token provided");
+  }
+
+  try {
+    const jwtSecret = await getJwtSecret();
+    const decoded = jwt.verify(token, jwtSecret);
+    return decoded;
+  } catch (err) {
+    throw new Error("Failed to authenticate token");
+  }
+};
+
+const extractPayload = (req) => {
+  let cognitoPayload = {};
+  let jwtPayload = {};
+
+  // Check for Cognito authentication
+  if (req.apiGateway && req.apiGateway.event.requestContext.identity) {
+    cognitoPayload = req.apiGateway.event.requestContext.identity;
+  }
+
+  // Check for JWT Bearer token
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+    try {
+      jwtPayload = jwt.decode(token); // This only decodes, not verifies the token
+    } catch (err) {
+      console.error("Error decoding JWT token:", err);
+    }
+  }
+
+  return {
+    cognitoPayload,
+    jwtPayload,
+  };
+};
+
+app.get("/user/auth", async function (req, res) {
+  try {
+    const claims = await extractClaims(req);
+    const payload = extractPayload(req);
+    res.json({ claims, payload, success: "get call succeed!", url: req.url });
+  } catch (err) {
+    res.status(401).json({ error: err.message });
+  }
+});
+
 /********************************
  * HTTP Get method for list objects *
  ********************************/
@@ -92,7 +161,14 @@ app.get(path + hashKeyPath, async function (req, res) {
 
   try {
     const data = await ddbDocClient.send(new QueryCommand(queryParams));
-    res.json(data.Items);
+
+    // Remove the password field from each item
+    const sanitizedItems = data.Items.map((item) => {
+      item.Password = "*****";
+      return item;
+    });
+
+    res.json(sanitizedItems);
   } catch (err) {
     res.statusCode = 500;
     res.json({ error: "Could not load items: " + err.message });
@@ -142,10 +218,12 @@ app.get(
 
     try {
       const data = await ddbDocClient.send(new GetCommand(getItemParams));
+
       if (data.Item) {
+        data.Item["Password"] = "*****";
         res.json(data.Item);
       } else {
-        res.json(data);
+        res.json({});
       }
     } catch (err) {
       res.statusCode = 500;
@@ -158,14 +236,15 @@ app.get(
  * HTTP put method for insert object *
  *************************************/
 
-app.put(path, async function (req, res) {
+app.put(path + hashKeyPath, async function (req, res) {
   let putItemParams = {
     TableName: tableName,
     Item: req.body,
   };
   try {
-    let data = await ddbDocClient.send(new PutCommand(putItemParams));
-    res.json({ success: "put call succeed!", url: req.url, data: data });
+    await ddbDocClient.send(new PutCommand(putItemParams));
+    req.body["Password"] = "*****";
+    res.json({ success: "put call succeed!", url: req.url, data: req.body });
   } catch (err) {
     res.statusCode = 500;
     res.json({ error: err, url: req.url, body: req.body });
@@ -179,13 +258,34 @@ app.put(path, async function (req, res) {
 app.post(path, async function (req, res) {
   req.body["ID"] = uuidv4();
 
-  let putItemParams = {
+  // Check if the item already exists
+  const getItemParams = {
     TableName: tableName,
-    Item: req.body,
+    Key: {
+      ProjectID: req.body["ProjectID"],
+      Email: req.body["Email"],
+    },
   };
+
   try {
-    let data = await ddbDocClient.send(new PutCommand(putItemParams));
-    res.json({ success: "post call succeed!", url: req.url, data: data });
+    const existingItem = await ddbDocClient.send(new GetCommand(getItemParams));
+
+    if (existingItem.Item) {
+      // If the item exists, return it
+      existingItem.Item["Password"] = "*****";
+      res.json({ success: "Item already exists!", data: existingItem.Item });
+      return;
+    }
+
+    // If the item doesn't exist, proceed to insert it
+    let putItemParams = {
+      TableName: tableName,
+      Item: req.body,
+    };
+
+    await ddbDocClient.send(new PutCommand(putItemParams));
+    req.body["Password"] = "*****";
+    res.json({ success: "post call succeed!", url: req.url, data: req.body });
   } catch (err) {
     res.statusCode = 500;
     res.json({ error: err, url: req.url, body: req.body });
@@ -235,7 +335,7 @@ app.delete(
 
     try {
       let data = await ddbDocClient.send(new DeleteCommand(removeItemParams));
-      res.json({ url: req.url, data: data });
+      res.json({ url: req.url });
     } catch (err) {
       res.statusCode = 500;
       res.json({ error: err, url: req.url });
