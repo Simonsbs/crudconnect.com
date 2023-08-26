@@ -23,6 +23,20 @@ export type AmplifyDependentResourcesAttributes = {
     }
   },
   "function": {
+    "ccFncItem": {
+      "Arn": "string",
+      "LambdaExecutionRole": "string",
+      "LambdaExecutionRoleArn": "string",
+      "Name": "string",
+      "Region": "string"
+    },
+    "ccFncLogin": {
+      "Arn": "string",
+      "LambdaExecutionRole": "string",
+      "LambdaExecutionRoleArn": "string",
+      "Name": "string",
+      "Region": "string"
+    },
     "ccFncProfile": {
       "Arn": "string",
       "LambdaExecutionRole": "string",
@@ -46,6 +60,16 @@ export type AmplifyDependentResourcesAttributes = {
     }
   },
   "storage": {
+    "ccTblItem": {
+      "Arn": "string",
+      "Name": "string",
+      "PartitionKeyName": "string",
+      "PartitionKeyType": "string",
+      "Region": "string",
+      "SortKeyName": "string",
+      "SortKeyType": "string",
+      "StreamArn": "string"
+    },
     "ccTblProfile": {
       "Arn": "string",
       "Name": "string",

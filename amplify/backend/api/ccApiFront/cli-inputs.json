@@ -7,6 +7,20 @@
       "permissions": {
         "setting": "open"
       }
+    },
+    "/login": {
+      "name": "/login",
+      "lambdaFunction": "ccFncLogin",
+      "permissions": {
+        "setting": "open"
+      }
+    },
+    "/item": {
+      "name": "/item",
+      "lambdaFunction": "ccFncItem",
+      "permissions": {
+        "setting": "open"
+      }
     }
   }
 }

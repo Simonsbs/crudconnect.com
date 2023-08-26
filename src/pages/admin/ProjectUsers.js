@@ -75,8 +75,8 @@ function ProjectUsers() {
 
   const handleDeleteUser = async () => {
     await API.del(
-      "ccApiFron",
-      `/user/${selectedProject.ID}/object/${deleteID}`
+      "ccApiFront",
+      `/user/object/${selectedProject.ID}/${deleteID}`
     );
     setUsers((prevUsers) => prevUsers.filter((user) => user.ID !== deleteID));
     setShowDeleteModal(false);
@@ -119,7 +119,7 @@ function ProjectUsers() {
                       <td>{user.ID}</td>
                       <td>{user.Name}</td>
                       <td>{user.Email}</td>
-                      <td>{user.Role}</td>{" "}
+                      <td>{user.Role}</td>
                       <td>
                         <Button
                           variant="warning"
@@ -191,6 +191,19 @@ function ProjectUsers() {
                 setEditingUser((prev) => ({
                   ...prev,
                   Email: e.target.value,
+                }))
+              }
+            />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Password</Form.Label>
+            <Form.Control
+              type="Password"
+              value={editingUser?.Password || ""}
+              onChange={(e) =>
+                setEditingUser((prev) => ({
+                  ...prev,
+                  Password: e.target.value,
                 }))
               }
             />

@@ -1,0 +1,26 @@
+{
+  "resourceName": "ccTblItem",
+  "tableName": "ccTblItem",
+  "partitionKey": {
+    "fieldName": "ProjectID_Category",
+    "fieldType": "string"
+  },
+  "sortKey": {
+    "fieldName": "ItemID",
+    "fieldType": "string"
+  },
+  "gsi": [
+    {
+      "name": "ccGsiItemScope",
+      "partitionKey": {
+        "fieldName": "ProjectID_Category",
+        "fieldType": "string"
+      },
+      "sortKey": {
+        "fieldName": "Scope",
+        "fieldType": "string"
+      }
+    }
+  ],
+  "triggerFunctions": []
+}

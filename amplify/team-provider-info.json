@@ -62,6 +62,14 @@
         "ccFncUser": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
           "s3Key": "amplify-builds/ccFncUser-726356796e784b425363-build.zip"
+        },
+        "ccFncLogin": {
+          "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
+          "s3Key": "amplify-builds/ccFncLogin-726c47476c3054344343-build.zip"
+        },
+        "ccFncItem": {
+          "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
+          "s3Key": "amplify-builds/ccFncItem-43684a754d4575354564-build.zip"
         }
       },
       "api": {
@@ -71,7 +79,8 @@
       "storage": {
         "ccTblProfile": {},
         "ccTblProject": {},
-        "ccTblUser": {}
+        "ccTblUser": {},
+        "ccTblItem": {}
       }
     }
   }
