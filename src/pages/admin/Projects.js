@@ -1,27 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { API } from "aws-amplify";
 import { Form, Button, Table, Modal } from "react-bootstrap";
 import { useAuthenticator } from "@aws-amplify/ui-react-core";
 import { Loader } from "@aws-amplify/ui-react";
+import { ProjectsContext } from "../../contexts/ProjectsContext";
 
 function Projects() {
-  const [projects, setProjects] = useState();
   const [editingProject, setEditingProject] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteID, setDeleteID] = useState(null);
   const { user } = useAuthenticator((context) => [context.user]);
 
+  const { projects, setProjects } = useContext(ProjectsContext);
+
   const UserID = user?.attributes?.sub;
-
-  const fetchProjects = async () => {
-    const response = await API.get("ccApiBack", `/project`);
-    setProjects(response);
-  };
-
-  useEffect(() => {
-    fetchProjects();
-  }, []);
 
   const handleAddProject = () => {
     setEditingProject({
