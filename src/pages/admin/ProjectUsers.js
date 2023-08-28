@@ -51,9 +51,13 @@ function ProjectUsers() {
 
     if (isEditMode) {
       // Existing user, so update
-      await API.put("ccApiFront", `/user/${userData.Email}`, {
-        body: userData,
-      });
+      await API.put(
+        "ccApiFront",
+        `/user/${selectedProject.ID}/${userData.Email}`,
+        {
+          body: userData,
+        }
+      );
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user.Email === userData.Email ? userData : user

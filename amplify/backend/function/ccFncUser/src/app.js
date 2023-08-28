@@ -192,17 +192,43 @@ app.get(
  * HTTP put method for insert object *
  *************************************/
 
-app.put(path + hashKeyPath, async function (req, res) {
+app.put(path + hashKeyPath + sortKeyPath, async function (req, res) {
   const tokenPayload = await verifyToken(req);
   if (!tokenPayload) {
     req.body["Role"] = "Guest";
   }
 
-  let putItemParams = {
+  const projectID = req.params[partitionKeyName];
+  const email = req.params[sortKeyName];
+
+  // Ensure Email from the path is used and not from the body
+  req.body["Email"] = email;
+
+  // Check if the item already exists
+  const getItemParams = {
     TableName: tableName,
-    Item: req.body,
+    Key: {
+      ProjectID: projectID,
+      Email: email,
+    },
   };
+
   try {
+    const existingItem = await ddbDocClient.send(new GetCommand(getItemParams));
+
+    if (!existingItem.Item) {
+      // If the item doesn't exist, return an error
+      res.statusCode = 404;
+      res.json({ error: "Item not found!" });
+      return;
+    }
+
+    // If the item exists, proceed to update it
+    let putItemParams = {
+      TableName: tableName,
+      Item: req.body,
+    };
+
     await ddbDocClient.send(new PutCommand(putItemParams));
     req.body["Password"] = "*****";
     res.json({ success: "put call succeed!", url: req.url, data: req.body });
