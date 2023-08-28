@@ -61,7 +61,7 @@
         },
         "ccFncUser": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
-          "s3Key": "amplify-builds/ccFncUser-417764663669565a437a-build.zip"
+          "s3Key": "amplify-builds/ccFncUser-7067442f526f67746b2f-build.zip"
         },
         "ccFncLogin": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",

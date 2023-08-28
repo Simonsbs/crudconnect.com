@@ -217,8 +217,6 @@ app.put(path + hashKeyPath, async function (req, res) {
  *************************************/
 
 app.post(path, async function (req, res) {
-  req.body["ID"] = uuidv4();
-
   const tokenPayload = await verifyToken(req);
   if (!tokenPayload) {
     req.body["Role"] = "Guest";

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { API } from "aws-amplify";
-import { Form, Button, Table, Modal, Dropdown } from "react-bootstrap";
-import { useAuthenticator } from "@aws-amplify/ui-react-core";
+import { Form, Button, Table, Modal } from "react-bootstrap";
 import { Loader } from "@aws-amplify/ui-react";
 import { ProjectsContext } from "../../contexts/ProjectsContext";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 function ProjectUsers() {
   const [users, setUsers] = useState();
   const [editingUser, setEditingUser] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteID, setDeleteID] = useState(null);
@@ -35,35 +35,42 @@ function ProjectUsers() {
 
   const handleAddUser = () => {
     setEditingUser({
-      ID: "",
       ProjectID: selectedProject.ID,
       Name: "",
       Role: "",
     });
+    setIsEditMode(false);
     setShowEditModal(true);
   };
 
   const handleSaveUser = async () => {
     const userData = { ...editingUser, ProjectID: selectedProject.ID };
 
-    if (userData.ID) {
-      await API.put("ccApiFront", `/user`, {
+    console.log(userData);
+    console.log(isEditMode);
+
+    if (isEditMode) {
+      // Existing user, so update
+      await API.put("ccApiFront", `/user/${userData.Email}`, {
         body: userData,
       });
       setUsers((prevUsers) =>
-        prevUsers.map((user) => (user.ID === userData.ID ? userData : user))
+        prevUsers.map((user) =>
+          user.Email === userData.Email ? userData : user
+        )
       );
     } else {
-      const newUser = await API.post("ccApiFront", `/user`, {
+      // New user, so add
+      await API.post("ccApiFront", `/user`, {
         body: userData,
       });
-      setUsers((prevUsers) => [...prevUsers, newUser]);
+      setUsers((prevUsers) => [...prevUsers, userData]);
     }
     setShowEditModal(false);
   };
 
-  const handleDeleteUserConfirmation = (ID) => {
-    setDeleteID(ID);
+  const handleDeleteUserConfirmation = (Email) => {
+    setDeleteID(Email);
     setShowDeleteModal(true);
   };
 
@@ -72,7 +79,9 @@ function ProjectUsers() {
       "ccApiFront",
       `/user/object/${selectedProject.ID}/${deleteID}`
     );
-    setUsers((prevUsers) => prevUsers.filter((user) => user.ID !== deleteID));
+    setUsers((prevUsers) =>
+      prevUsers.filter((user) => user.Email !== deleteID)
+    );
     setShowDeleteModal(false);
   };
 
@@ -84,9 +93,8 @@ function ProjectUsers() {
           <Table responsive>
             <thead>
               <tr>
-                <th>User ID</th>
-                <th>Name</th>
                 <th>Email</th>
+                <th>Name</th>
                 <th>Role</th>
                 <th>Actions</th>
               </tr>
@@ -94,11 +102,10 @@ function ProjectUsers() {
             <tbody>
               {users ? (
                 users.length > 0 ? (
-                  users.map((user, index) => (
-                    <tr key={index}>
-                      <td>{user.ID}</td>
-                      <td>{user.Name}</td>
+                  users.map((user) => (
+                    <tr key={user.Email}>
                       <td>{user.Email}</td>
+                      <td>{user.Name}</td>
                       <td>{user.Role}</td>
                       <td>
                         <Button
@@ -106,6 +113,7 @@ function ProjectUsers() {
                           className="me-2"
                           onClick={() => {
                             setEditingUser(user);
+                            setIsEditMode(true);
                             setShowEditModal(true);
                           }}
                         >
@@ -113,7 +121,9 @@ function ProjectUsers() {
                         </Button>
                         <Button
                           variant="danger"
-                          onClick={() => handleDeleteUserConfirmation(user.ID)}
+                          onClick={() =>
+                            handleDeleteUserConfirmation(user.Email)
+                          }
                         >
                           Delete
                         </Button>
@@ -146,9 +156,7 @@ function ProjectUsers() {
       {/* Edit/Add User Modal */}
       <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>
-            {editingUser?.ID ? "Edit User" : "Add User"}
-          </Modal.Title>
+          <Modal.Title>{isEditMode ? "Edit User" : "Add User"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form.Group>
@@ -175,6 +183,7 @@ function ProjectUsers() {
                   Email: e.target.value,
                 }))
               }
+              readOnly={isEditMode}
             />
           </Form.Group>
           <Form.Group>
