@@ -1,8 +1,20 @@
 import { useAuthenticator } from "@aws-amplify/ui-react";
-import { Link } from "react-router-dom";
+import { useContext, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ProjectsContext } from "../../contexts/ProjectsContext";
+import { Dropdown } from "react-bootstrap";
 
 function SideBar() {
   const { signOut } = useAuthenticator((context) => [context.user]);
+  const { projects, selectProject, selectedProject } =
+    useContext(ProjectsContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!projects?.length) {
+      navigate("/admin/projects/");
+    }
+  }, [projects, navigate]);
 
   return (
     <div className="sidebar border border-right col-md-3 col-lg-2 p-0 bg-body-tertiary">
@@ -26,6 +38,24 @@ function SideBar() {
         </div>
         <div className="offcanvas-body d-md-flex flex-column p-0 pt-lg-3 overflow-y-auto">
           <ul className="nav flex-column">
+            <li className="nav-item">
+              <Dropdown
+                onSelect={(key) =>
+                  selectProject(projects.find((proj) => proj.ID === key))
+                }
+              >
+                <Dropdown.Toggle variant="success" id="dropdown-basic">
+                  {selectedProject?.Name || "Select Project"}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  {projects?.map((project) => (
+                    <Dropdown.Item key={project.ID} eventKey={project.ID}>
+                      {project.Name}
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown>
+            </li>
             <li className="nav-item">
               <Link
                 className="nav-link d-flex align-items-center gap-2 active"
@@ -52,6 +82,15 @@ function SideBar() {
               >
                 <i className="bi bi-people"></i>
                 Users
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                className="nav-link d-flex align-items-center gap-2"
+                to="/admin/items"
+              >
+                <i className="bi bi-database-fill"></i>
+                Items
               </Link>
             </li>
           </ul>

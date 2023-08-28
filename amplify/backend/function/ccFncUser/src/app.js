@@ -63,71 +63,27 @@ const convertUrlType = (param, type) => {
   }
 };
 
-const getJwtSecret = async () => {
+async function getJwtSecret() {
   const secretData = await secretsManager
     .getSecretValue({ SecretId: "jwtSigningKey" })
     .promise();
   return JSON.parse(secretData.SecretString).ccJWTSecret;
-};
+}
 
-const extractClaims = async (req) => {
-  // Check for Cognito authentication
-  if (req.apiGateway && req.apiGateway.event.requestContext.identity) {
-    return req.apiGateway.event.requestContext.identity;
-  }
-
-  // Check for JWT Bearer token
-  const authHeader = req.headers.authorization || "";
-  const token = authHeader.split(" ")[1];
-
-  if (!token) {
-    throw new Error("No token provided");
-  }
-
-  try {
-    const jwtSecret = await getJwtSecret();
-    const decoded = jwt.verify(token, jwtSecret);
-    return decoded;
-  } catch (err) {
-    throw new Error("Failed to authenticate token");
-  }
-};
-
-const extractPayload = (req) => {
-  let cognitoPayload = {};
-  let jwtPayload = {};
-
-  // Check for Cognito authentication
-  if (req.apiGateway && req.apiGateway.event.requestContext.identity) {
-    cognitoPayload = req.apiGateway.event.requestContext.identity;
-  }
-
-  // Check for JWT Bearer token
+const verifyToken = async (req) => {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith("Bearer ")) {
     const token = authHeader.split(" ")[1];
+    const jwtSecret = await getJwtSecret();
     try {
-      jwtPayload = jwt.decode(token); // This only decodes, not verifies the token
+      const decoded = jwt.verify(token, jwtSecret);
+      return decoded;
     } catch (err) {
-      console.error("Error decoding JWT token:", err);
+      return null; // Invalid token
     }
   }
-
-  return {
-    cognitoPayload,
-    jwtPayload,
-  };
+  return null; // No token
 };
-
-app.get("/user/auth", async function (req, res) {
-  try {
-    const claims = await extractClaims(req);
-    const payload = extractPayload(req);
-    res.json({ claims, payload, success: "get call succeed!", url: req.url });
-  } catch (err) {
-    res.status(401).json({ error: err.message });
-  }
-});
 
 /********************************
  * HTTP Get method for list objects *
@@ -237,6 +193,11 @@ app.get(
  *************************************/
 
 app.put(path + hashKeyPath, async function (req, res) {
+  const tokenPayload = await verifyToken(req);
+  if (!tokenPayload) {
+    req.body["Role"] = "Guest";
+  }
+
   let putItemParams = {
     TableName: tableName,
     Item: req.body,
@@ -258,6 +219,11 @@ app.put(path + hashKeyPath, async function (req, res) {
 app.post(path, async function (req, res) {
   req.body["ID"] = uuidv4();
 
+  const tokenPayload = await verifyToken(req);
+  if (!tokenPayload) {
+    req.body["Role"] = "Guest";
+  }
+
   // Check if the item already exists
   const getItemParams = {
     TableName: tableName,
@@ -273,7 +239,7 @@ app.post(path, async function (req, res) {
     if (existingItem.Item) {
       // If the item exists, return it
       existingItem.Item["Password"] = "*****";
-      res.json({ success: "Item already exists!", data: existingItem.Item });
+      res.json({ success: "Item already exists!" });
       return;
     }
 

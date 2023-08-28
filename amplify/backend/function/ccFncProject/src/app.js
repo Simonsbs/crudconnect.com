@@ -141,7 +141,7 @@ app.put(path, async function (req, res) {
   };
   try {
     let data = await ddbDocClient.send(new PutCommand(putItemParams));
-    res.json({ success: "put call succeed!", url: req.url, data: data });
+    res.json({ success: "put call succeed!", url: req.url, data: req.body });
   } catch (err) {
     res.statusCode = 500;
     res.json({ error: err, url: req.url, body: req.body });
@@ -161,8 +161,8 @@ app.post(path, async function (req, res) {
     Item: req.body,
   };
   try {
-    let data = await ddbDocClient.send(new PutCommand(putItemParams));
-    res.json({ success: "post call succeed!", url: req.url, data: data });
+    await ddbDocClient.send(new PutCommand(putItemParams));
+    res.json({ success: "post call succeed!", url: req.url, data: req.body });
   } catch (err) {
     res.statusCode = 500;
     res.json({ error: err, url: req.url, body: req.body });

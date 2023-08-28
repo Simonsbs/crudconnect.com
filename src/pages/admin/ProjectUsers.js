@@ -1,23 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { API } from "aws-amplify";
 import { Form, Button, Table, Modal, Dropdown } from "react-bootstrap";
 import { useAuthenticator } from "@aws-amplify/ui-react-core";
 import { Loader } from "@aws-amplify/ui-react";
+import { ProjectsContext } from "../../contexts/ProjectsContext";
+import { useNavigate } from "react-router-dom";
 
 function ProjectUsers() {
-  const [projects, setProjects] = useState([]);
-  const [selectedProject, setSelectedProject] = useState(null);
   const [users, setUsers] = useState();
   const [editingUser, setEditingUser] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteID, setDeleteID] = useState(null);
-  const { user } = useAuthenticator((context) => [context.user]);
+  const { selectedProject } = useContext(ProjectsContext);
+  const navigate = useNavigate();
 
-  const fetchProjects = async () => {
-    const response = await API.get("ccApiBack", `/project`);
-    setProjects(response);
-  };
+  useEffect(() => {
+    if (!selectedProject) {
+      navigate("/admin/projects/");
+    }
+  }, [selectedProject, navigate]);
 
   const fetchUsers = async (projectId) => {
     setUsers(null);
@@ -26,25 +28,17 @@ function ProjectUsers() {
   };
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  useEffect(() => {
     if (selectedProject) {
       fetchUsers(selectedProject.ID);
     }
   }, [selectedProject]);
-
-  const handleSelectProject = (project) => {
-    setSelectedProject(project);
-  };
 
   const handleAddUser = () => {
     setEditingUser({
       ID: "",
       ProjectID: selectedProject.ID,
       Name: "",
-      Role: "", // Assuming users have a 'Role', adjust as needed
+      Role: "",
     });
     setShowEditModal(true);
   };
@@ -84,21 +78,7 @@ function ProjectUsers() {
 
   return (
     <div className="container mt-5">
-      <h1>ProjectUsers</h1>
-      <Dropdown onSelect={(key) => handleSelectProject(projects[key])}>
-        <Dropdown.Toggle variant="primary" id="dropdown-basic">
-          {selectedProject ? selectedProject.Name : "Select a Project"}
-        </Dropdown.Toggle>
-
-        <Dropdown.Menu>
-          {projects.map((project, index) => (
-            <Dropdown.Item key={index} eventKey={index}>
-              {project.Name}
-            </Dropdown.Item>
-          ))}
-        </Dropdown.Menu>
-      </Dropdown>
-
+      <h1>Project Users</h1>
       {selectedProject ? (
         <>
           <Table responsive>

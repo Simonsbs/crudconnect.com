@@ -57,11 +57,11 @@
         },
         "ccFncProject": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
-          "s3Key": "amplify-builds/ccFncProject-2f79455a6f5374394252-build.zip"
+          "s3Key": "amplify-builds/ccFncProject-76584944736c56656736-build.zip"
         },
         "ccFncUser": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
-          "s3Key": "amplify-builds/ccFncUser-706d462f7970596c6170-build.zip"
+          "s3Key": "amplify-builds/ccFncUser-417764663669565a437a-build.zip"
         },
         "ccFncLogin": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
@@ -69,7 +69,7 @@
         },
         "ccFncItem": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
-          "s3Key": "amplify-builds/ccFncItem-532b4f5977654c6e7043-build.zip"
+          "s3Key": "amplify-builds/ccFncItem-3332537a50612b677475-build.zip"
         }
       },
       "api": {

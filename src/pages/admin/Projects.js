@@ -12,6 +12,8 @@ function Projects() {
   const [deleteID, setDeleteID] = useState(null);
   const { user } = useAuthenticator((context) => [context.user]);
 
+  const { projects, setProjects, addProject, updateProject, removeProject } =
+    useContext(ProjectsContext);
   const UserID = user?.attributes?.sub;
 
   const fetchProjects = async () => {
@@ -38,19 +40,12 @@ function Projects() {
 
     if (projectData.ID) {
       await API.put("ccApiBack", "/project", { body: projectData });
-      setProjects((prevProjects) =>
-        prevProjects.map((proj) =>
-          proj.ID === projectData.ID ? projectData : proj
-        )
-      );
+      updateProject(projectData);
     } else {
-      const newProject = await API.post("ccApiBack", "/project", {
+      const response = await API.post("ccApiBack", "/project", {
         body: projectData,
       });
-
-      console.log(newProject);
-
-      setProjects((prevProjects) => [...prevProjects, newProject]);
+      addProject(response.data);
     }
     setShowEditModal(false);
   };
@@ -62,9 +57,8 @@ function Projects() {
 
   const handleDeleteProject = async () => {
     await API.del("ccApiBack", `/project/object/${deleteID}/${UserID}`);
-    setProjects((prevProjects) =>
-      prevProjects.filter((proj) => proj.ID !== deleteID)
-    );
+    removeProject(deleteID);
+
     setShowDeleteModal(false);
   };
 
@@ -83,8 +77,8 @@ function Projects() {
         </thead>
         <tbody>
           {projects ? (
-            projects.map((project, index) => (
-              <tr key={index}>
+            projects.map((project) => (
+              <tr key={project.ID}>
                 <td>{project.ID}</td>
                 {/* <td>{project.UserID}</td> */}
                 <td>{project.Name}</td>
