@@ -126,9 +126,11 @@ function ProjectUsers() {
                   </tr>
                 )
               ) : (
-                <td colSpan={4}>
-                  <Loader variation="linear" />
-                </td>
+                <tr>
+                  <td colSpan={4}>
+                    <Loader variation="linear" />
+                  </td>
+                </tr>
               )}
             </tbody>
           </Table>

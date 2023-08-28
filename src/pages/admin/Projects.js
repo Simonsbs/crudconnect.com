@@ -72,7 +72,6 @@ function Projects() {
             projects.map((project) => (
               <tr key={project.ID}>
                 <td>{project.ID}</td>
-                {/* <td>{project.UserID}</td> */}
                 <td>{project.Name}</td>
                 <td>{project.Description}</td>
                 <td>
