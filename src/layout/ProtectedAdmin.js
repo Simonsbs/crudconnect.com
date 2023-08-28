@@ -2,15 +2,17 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import { withAuthenticator } from "@aws-amplify/ui-react";
 import SideBar from "./admin/SideBar";
+import { ProjectsProvider } from "../contexts/ProjectsContext";
 
 function ProtectedAdminBase() {
   return (
     <div className="d-flex">
-      <SideBar />
-
-      <div className="flex-grow-1 p-3">
-        <Outlet />
-      </div>
+      <ProjectsProvider>
+        <SideBar />
+        <div className="flex-grow-1 p-3">
+          <Outlet />
+        </div>
+      </ProjectsProvider>
     </div>
   );
 }
