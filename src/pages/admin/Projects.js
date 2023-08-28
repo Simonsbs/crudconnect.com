@@ -4,6 +4,86 @@ import { Form, Button, Table, Modal } from "react-bootstrap";
 import { useAuthenticator } from "@aws-amplify/ui-react-core";
 import { Loader } from "@aws-amplify/ui-react";
 import { ProjectsContext } from "../../contexts/ProjectsContext";
+import DeleteModal from "../../components/DeleteModal";
+
+function ProjectRow({ project, onEdit, onDelete, setShowEditModal }) {
+  return (
+    <tr key={project.ID}>
+      <td>{project.ID}</td>
+      <td>{project.Name}</td>
+      <td>{project.Description}</td>
+      <td>
+        <Button
+          variant="warning"
+          className="me-2"
+          onClick={() => {
+            onEdit(project);
+            setShowEditModal(true); // Ensure this line is present
+          }}
+        >
+          Edit
+        </Button>
+        <Button variant="danger" onClick={() => onDelete(project.ID)}>
+          Delete
+        </Button>
+      </td>
+    </tr>
+  );
+}
+
+function ProjectModal({ show, project, onClose, onSave }) {
+  const [currentProject, setCurrentProject] = useState(project);
+
+  useEffect(() => {
+    setCurrentProject(project);
+  }, [project]);
+
+  return (
+    <Modal show={show} onHide={onClose}>
+      <Modal.Header closeButton>
+        <Modal.Title>
+          {currentProject?.ID ? "Edit Project" : "Add Project"}
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <ProjectForm project={currentProject} onChange={setCurrentProject} />
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={onClose}>
+          Close
+        </Button>
+        <Button variant="primary" onClick={() => onSave(currentProject)}>
+          Save Changes
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+}
+
+function ProjectForm({ project, onChange }) {
+  return (
+    <>
+      <Form.Group>
+        <Form.Label>Name</Form.Label>
+        <Form.Control
+          type="text"
+          value={project?.Name || ""}
+          onChange={(e) => onChange({ ...project, Name: e.target.value })}
+        />
+      </Form.Group>
+      <Form.Group>
+        <Form.Label>Description</Form.Label>
+        <Form.Control
+          as="textarea"
+          value={project?.Description || ""}
+          onChange={(e) =>
+            onChange({ ...project, Description: e.target.value })
+          }
+        />
+      </Form.Group>
+    </>
+  );
+}
 
 function Projects() {
   const [editingProject, setEditingProject] = useState(null);
@@ -12,7 +92,7 @@ function Projects() {
   const [deleteID, setDeleteID] = useState(null);
   const { user } = useAuthenticator((context) => [context.user]);
 
-  const { projects, setProjects, addProject, updateProject, removeProject } =
+  const { projects, addProject, updateProject, removeProject } =
     useContext(ProjectsContext);
 
   const UserID = user?.attributes?.sub;
@@ -27,8 +107,8 @@ function Projects() {
     setShowEditModal(true);
   };
 
-  const handleSaveProject = async () => {
-    const projectData = { ...editingProject, UserID };
+  const handleSaveProject = async (projectData) => {
+    projectData = { ...projectData, UserID };
 
     if (projectData.ID) {
       await API.put("ccApiBack", "/project", { body: projectData });
@@ -50,7 +130,6 @@ function Projects() {
   const handleDeleteProject = async () => {
     await API.del("ccApiBack", `/project/object/${deleteID}/${UserID}`);
     removeProject(deleteID);
-
     setShowDeleteModal(false);
   };
 
@@ -61,7 +140,6 @@ function Projects() {
         <thead>
           <tr>
             <th>Project ID</th>
-            {/* <th>User ID</th> */}
             <th>Name</th>
             <th>Description</th>
             <th>Actions</th>
@@ -70,29 +148,13 @@ function Projects() {
         <tbody>
           {projects ? (
             projects.map((project) => (
-              <tr key={project.ID}>
-                <td>{project.ID}</td>
-                <td>{project.Name}</td>
-                <td>{project.Description}</td>
-                <td>
-                  <Button
-                    variant="warning"
-                    className="me-2"
-                    onClick={() => {
-                      setEditingProject(project);
-                      setShowEditModal(true);
-                    }}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="danger"
-                    onClick={() => handleDeleteProjectConfirmation(project.ID)}
-                  >
-                    Delete
-                  </Button>
-                </td>
-              </tr>
+              <ProjectRow
+                key={project.ID}
+                project={project}
+                onEdit={setEditingProject}
+                onDelete={handleDeleteProjectConfirmation}
+                setShowEditModal={setShowEditModal}
+              />
             ))
           ) : (
             <tr>
@@ -107,66 +169,20 @@ function Projects() {
         Add Project
       </Button>
 
-      {/* Edit/Add Project Modal */}
-      <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {editingProject?.ID ? "Edit Project" : "Add Project"}
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Group>
-            <Form.Label>Name</Form.Label>
-            <Form.Control
-              type="text"
-              value={editingProject?.Name || ""}
-              onChange={(e) =>
-                setEditingProject((prev) => ({
-                  ...prev,
-                  Name: e.target.value,
-                }))
-              }
-            />
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Description</Form.Label>
-            <Form.Control
-              as="textarea"
-              value={editingProject?.Description || ""}
-              onChange={(e) =>
-                setEditingProject((prev) => ({
-                  ...prev,
-                  Description: e.target.value,
-                }))
-              }
-            />
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowEditModal(false)}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={handleSaveProject}>
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <ProjectModal
+        show={showEditModal}
+        project={editingProject}
+        onClose={() => setShowEditModal(false)}
+        onSave={handleSaveProject}
+      />
 
       {/* Delete Confirmation Modal */}
-      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm Deletion</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>Are you sure you want to delete this project?</Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={handleDeleteProject}>
-            Delete
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <DeleteModal
+        show={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onDelete={handleDeleteProject}
+        dataType="project"
+      />
     </div>
   );
 }
