@@ -18,6 +18,7 @@ import { RequireAuth } from "./components/RequireAuth";
 import ProtectedAdmin from "./layout/ProtectedAdmin";
 import Projects from "./pages/admin/Projects";
 import ProjectUsers from "./pages/admin/ProjectUsers";
+import ProjectItems from "./pages/admin/ProjectItems";
 
 Amplify.configure(config);
 
@@ -42,9 +43,10 @@ function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="profile" element={<UserProfile />} />
             <Route path="projects" element={<Projects />} />
-            <Route path="data" element={<UserData />} />
+            {/* <Route path="data" element={<UserData />} /> */}
             <Route path="users" element={<ProjectUsers />} />
-            <Route path="token-manager" element={<UserTokenManager />} />
+            <Route path="items" element={<ProjectItems />} />
+            {/* <Route path="token-manager" element={<UserTokenManager />} /> */}
           </Route>
         </Routes>
         <Footer />

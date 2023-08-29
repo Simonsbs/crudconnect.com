@@ -47,6 +47,14 @@
           ],
           "category": "function",
           "resourceName": "ccFncItem"
+        },
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "ccFncCategory"
         }
       ],
       "providerPlugin": "awscloudformation",
@@ -82,6 +90,25 @@
     }
   },
   "function": {
+    "ccFncCategory": {
+      "build": true,
+      "dependsOn": [
+        {
+          "attributeEnvMap": {
+            "Arn": "TABLE_ARN",
+            "Name": "TABLE_NAME"
+          },
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "storage",
+          "resourceName": "ccTblItem"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
     "ccFncItem": {
       "build": true,
       "dependsOn": [
@@ -179,6 +206,22 @@
     }
   },
   "parameters": {
+    "AMPLIFY_function_ccFncCategory_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "ccFncCategory"
+        }
+      ]
+    },
+    "AMPLIFY_function_ccFncCategory_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "ccFncCategory"
+        }
+      ]
+    },
     "AMPLIFY_function_ccFncItem_deploymentBucketName": {
       "usedBy": [
         {

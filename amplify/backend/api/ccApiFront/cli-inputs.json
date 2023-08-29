@@ -21,6 +21,13 @@
       "permissions": {
         "setting": "open"
       }
+    },
+    "/category": {
+      "name": "/category",
+      "lambdaFunction": "ccFncCategory",
+      "permissions": {
+        "setting": "open"
+      }
     }
   }
 }

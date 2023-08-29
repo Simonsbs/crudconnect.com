@@ -70,6 +70,10 @@
         "ccFncItem": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
           "s3Key": "amplify-builds/ccFncItem-3332537a50612b677475-build.zip"
+        },
+        "ccFncCategory": {
+          "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
+          "s3Key": "amplify-builds/ccFncCategory-7a7443454563392f3251-build.zip"
         }
       },
       "api": {
