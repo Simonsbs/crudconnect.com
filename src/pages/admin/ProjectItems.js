@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext } from "react";
-import { API } from "aws-amplify";
+import { Auth, API } from "aws-amplify";
 import { Form, Button, Table, Modal, Dropdown } from "react-bootstrap";
 import { ProjectsContext } from "../../contexts/ProjectsContext";
+import JSONInput from "react-json-editor-ajrm";
 
 function ProjectItems() {
   const { selectedProject } = useContext(ProjectsContext);
@@ -11,12 +12,24 @@ function ProjectItems() {
   const [showItemModal, setShowItemModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
+  const getAuthHeaders = async () => {
+    const session = await Auth.currentSession();
+    const idToken = session.getIdToken().getJwtToken();
+
+    return {
+      headers: {
+        Authorization: `Cognito ${idToken}`,
+      },
+    };
+  };
+
   useEffect(() => {
     if (selectedProject) {
       const fetchCategories = async () => {
         const response = await API.get(
           "ccApiFront",
-          `/category/${selectedProject.ID}`
+          `/category/${selectedProject.ID}`,
+          await getAuthHeaders()
         );
         setCategories(response);
       };
@@ -29,7 +42,8 @@ function ProjectItems() {
       const fetchItems = async () => {
         const response = await API.get(
           "ccApiFront",
-          `/item/${selectedProject.ID}_${selectedCategory}`
+          `/item/${selectedProject.ID}_${selectedCategory}`,
+          await getAuthHeaders()
         );
         setItems(response);
       };
@@ -49,7 +63,8 @@ function ProjectItems() {
   const handleDeleteItem = async (itemID) => {
     await API.delete(
       "ccApiFront",
-      `/item/${selectedProject.ID}_${selectedCategory}/${itemID}`
+      `/item/${selectedProject.ID}_${selectedCategory}/${itemID}`,
+      await getAuthHeaders()
     );
     setItems((prevItems) => prevItems.filter((item) => item.ItemID !== itemID));
   };
@@ -59,7 +74,7 @@ function ProjectItems() {
       await API.put(
         "ccApiFront",
         `/item/${selectedProject.ID}_${selectedCategory}/${editingItem.ItemID}`,
-        { body: itemData }
+        { body: itemData, ...(await getAuthHeaders()) }
       );
       setItems((prevItems) =>
         prevItems.map((item) =>
@@ -70,7 +85,7 @@ function ProjectItems() {
       const response = await API.post(
         "ccApiFront",
         `/item/${selectedProject.ID}_${selectedCategory}`,
-        { body: itemData }
+        { body: itemData, ...(await getAuthHeaders()) }
       );
       setItems((prevItems) => [...prevItems, response]);
     }
@@ -187,6 +202,15 @@ function ItemForm({ item, onChange }) {
       </Form.Group>
       <Form.Group>
         <Form.Label>Data</Form.Label>
+        <JSONInput
+          id="a_unique_id"
+          placeholder={item.Data}
+          height="550px"
+          onChange={(e) =>
+            onChange({ ...item, Data: JSON.parse(e.target.value) })
+          }
+        />
+
         <Form.Control
           as="textarea"
           value={JSON.stringify(item.Data)}

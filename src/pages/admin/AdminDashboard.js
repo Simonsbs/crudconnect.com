@@ -1,6 +1,8 @@
 // import { API, Auth } from "aws-amplify";
 // import { useEffect, useState } from "react";
 
+import TokenDecoder from "../../components/TokenDecoder";
+
 function AdminDashboard() {
   // const [tmp, setTmp] = useState();
 
@@ -25,6 +27,7 @@ function AdminDashboard() {
   return (
     <>
       <h1>Admin Dashboard</h1>
+      <TokenDecoder />
       {/* {tmp ? (
         <div>
           <p>Project ID: {tmp}</p>

@@ -11,6 +11,7 @@
     "@testing-library/user-event": "^13.5.0",
     "amazon-cognito-identity-js": "^6.3.2",
     "aws-amplify": "^5.3.8",
+    "aws-jwt-verify": "^4.0.0",
     "axios": "^1.4.0",
     "bootstrap": "^5.3.1",
     "dotenv": "^16.3.1",
@@ -18,6 +19,7 @@
     "react-bootstrap": "^2.8.0",
     "react-dom": "^18.2.0",
     "react-gravatar": "^2.6.3",
+    "react-json-editor-ajrm": "^2.5.14",
     "react-router-dom": "^6.15.0",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
