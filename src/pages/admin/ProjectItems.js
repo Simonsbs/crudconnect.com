@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { Auth, API } from "aws-amplify";
 import { Form, Button, Table, Modal, Dropdown } from "react-bootstrap";
 import { ProjectsContext } from "../../contexts/ProjectsContext";
-import JSONInput from "react-json-editor-ajrm";
+import { CheckCircle, XCircle } from "react-bootstrap-icons";
 
 function ProjectItems() {
   const { selectedProject } = useContext(ProjectsContext);
@@ -71,6 +71,9 @@ function ProjectItems() {
 
   const handleSaveItem = async (itemData) => {
     if (editingItem) {
+      console.log("editing item");
+      console.log(itemData);
+
       await API.put(
         "ccApiFront",
         `/item/${selectedProject.ID}_${selectedCategory}/${editingItem.ItemID}`,
@@ -121,7 +124,11 @@ function ProjectItems() {
             <tr key={item.ItemID}>
               <td>{item.ItemID}</td>
               <td>{item.Scope}</td>
-              <td>{JSON.stringify(item.Data)}</td>
+              <td>
+                <pre>
+                  <code>{JSON.stringify(item.Data, null, 2)}</code>
+                </pre>
+              </td>
               <td>
                 <Button
                   variant="warning"
@@ -159,9 +166,11 @@ function ItemModal({ show, item, onClose, onSave }) {
   };
 
   const [currentItem, setCurrentItem] = useState(item || defaultItem);
+  const [isValidJson, setIsValidJson] = useState(true); // New state to track JSON validity
 
   useEffect(() => {
     setCurrentItem(item || defaultItem);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item]);
 
   return (
@@ -172,13 +181,21 @@ function ItemModal({ show, item, onClose, onSave }) {
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <ItemForm item={currentItem} onChange={setCurrentItem} />
+        <ItemForm
+          item={currentItem}
+          onChange={setCurrentItem}
+          onValidJsonChange={setIsValidJson}
+        />
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={onClose}>
           Close
         </Button>
-        <Button variant="primary" onClick={() => onSave(currentItem)}>
+        <Button
+          variant="primary"
+          onClick={() => onSave(currentItem)}
+          disabled={!isValidJson}
+        >
           Save Changes
         </Button>
       </Modal.Footer>
@@ -186,7 +203,29 @@ function ItemModal({ show, item, onClose, onSave }) {
   );
 }
 
-function ItemForm({ item, onChange }) {
+function ItemForm({ item, onChange, onValidJsonChange }) {
+  const [dataString, setDataString] = useState(
+    JSON.stringify(item.Data, null, 2)
+  );
+  const [isValidJson, setIsValidJson] = useState(true); // State to track JSON validity
+
+  useEffect(() => {
+    setDataString(JSON.stringify(item.Data, null, 2));
+  }, [item]);
+
+  const handleDataChange = (e) => {
+    setDataString(e.target.value);
+    try {
+      const parsedData = JSON.parse(e.target.value);
+      onChange({ ...item, Data: parsedData });
+      setIsValidJson(true);
+      onValidJsonChange(true);
+    } catch (e) {
+      setIsValidJson(false);
+      onValidJsonChange(false);
+    }
+  };
+
   return (
     <>
       <Form.Group>
@@ -194,7 +233,9 @@ function ItemForm({ item, onChange }) {
         <Form.Control
           as="select"
           value={item.Scope}
+          onBlur={(e) => onChange({ ...item, Scope: e.target.value })}
           onChange={(e) => onChange({ ...item, Scope: e.target.value })}
+          readOnly={false}
         >
           <option value="Public">Public</option>
           <option value="Private">Private</option>
@@ -202,22 +243,22 @@ function ItemForm({ item, onChange }) {
       </Form.Group>
       <Form.Group>
         <Form.Label>Data</Form.Label>
-        <JSONInput
-          id="a_unique_id"
-          placeholder={item.Data}
-          height="550px"
-          onChange={(e) =>
-            onChange({ ...item, Data: JSON.parse(e.target.value) })
-          }
-        />
-
         <Form.Control
           as="textarea"
-          value={JSON.stringify(item.Data)}
-          onChange={(e) =>
-            onChange({ ...item, Data: JSON.parse(e.target.value) })
-          }
+          value={dataString}
+          onChange={handleDataChange}
+          style={{ height: "200px" }}
         />
+        {/* Indication for valid or invalid JSON */}
+        {isValidJson ? (
+          <div className="text-success mt-2">
+            <CheckCircle className="me-2" /> Valid JSON
+          </div>
+        ) : (
+          <div className="text-danger mt-2">
+            <XCircle className="me-2" /> Invalid JSON
+          </div>
+        )}
       </Form.Group>
     </>
   );

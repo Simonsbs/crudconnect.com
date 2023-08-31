@@ -7,8 +7,6 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserProfile from "./pages/admin/UserProfile";
-import UserData from "./pages/admin/UserData";
-import UserTokenManager from "./pages/admin/UserTokenManager";
 import Header from "./layout/Header";
 import Footer from "./layout/Footer";
 import "@aws-amplify/ui-react/styles.css";
