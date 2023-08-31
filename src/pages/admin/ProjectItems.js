@@ -3,6 +3,7 @@ import { Auth, API } from "aws-amplify";
 import { Form, Button, Table, Modal, Dropdown } from "react-bootstrap";
 import { ProjectsContext } from "../../contexts/ProjectsContext";
 import { CheckCircle, XCircle } from "react-bootstrap-icons";
+import { Autocomplete } from "@aws-amplify/ui-react";
 
 function ProjectItems() {
   const { selectedProject } = useContext(ProjectsContext);
@@ -70,13 +71,11 @@ function ProjectItems() {
   };
 
   const handleSaveItem = async (itemData) => {
+    const combinedCategory = `${selectedProject.ID}_${itemData.Category}`;
     if (editingItem) {
-      console.log("editing item");
-      console.log(itemData);
-
       await API.put(
         "ccApiFront",
-        `/item/${selectedProject.ID}_${selectedCategory}/${editingItem.ItemID}`,
+        `/item/${combinedCategory}/${editingItem.ItemID}`,
         { body: itemData, ...(await getAuthHeaders()) }
       );
       setItems((prevItems) =>
@@ -87,7 +86,7 @@ function ProjectItems() {
     } else {
       const response = await API.post(
         "ccApiFront",
-        `/item/${selectedProject.ID}_${selectedCategory}`,
+        `/item/${combinedCategory}`,
         { body: itemData, ...(await getAuthHeaders()) }
       );
       setItems((prevItems) => [...prevItems, response]);
@@ -152,26 +151,39 @@ function ProjectItems() {
       <ItemModal
         show={showItemModal}
         item={editingItem}
-        onClose={() => setShowItemModal(false)}
+        categories={categories}
+        selectedCategory={selectedCategory}
+        onClose={() => {
+          setShowItemModal(false);
+          setEditingItem(null);
+        }}
         onSave={handleSaveItem}
       />
     </div>
   );
 }
 
-function ItemModal({ show, item, onClose, onSave }) {
+function ItemModal({
+  show,
+  item,
+  categories,
+  selectedCategory,
+  onClose,
+  onSave,
+}) {
   const defaultItem = {
+    Category: selectedCategory || "",
     Scope: "Public",
     Data: {},
   };
 
   const [currentItem, setCurrentItem] = useState(item || defaultItem);
-  const [isValidJson, setIsValidJson] = useState(true); // New state to track JSON validity
+  const [isValidJson, setIsValidJson] = useState(true);
 
   useEffect(() => {
     setCurrentItem(item || defaultItem);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item]);
+  }, [item, selectedCategory]);
 
   return (
     <Modal show={show} onHide={onClose}>
@@ -183,6 +195,7 @@ function ItemModal({ show, item, onClose, onSave }) {
       <Modal.Body>
         <ItemForm
           item={currentItem}
+          categories={categories}
           onChange={setCurrentItem}
           onValidJsonChange={setIsValidJson}
         />
@@ -203,11 +216,11 @@ function ItemModal({ show, item, onClose, onSave }) {
   );
 }
 
-function ItemForm({ item, onChange, onValidJsonChange }) {
+function ItemForm({ item, categories, onChange, onValidJsonChange }) {
   const [dataString, setDataString] = useState(
     JSON.stringify(item.Data, null, 2)
   );
-  const [isValidJson, setIsValidJson] = useState(true); // State to track JSON validity
+  const [isValidJson, setIsValidJson] = useState(true);
 
   useEffect(() => {
     setDataString(JSON.stringify(item.Data, null, 2));
@@ -229,13 +242,23 @@ function ItemForm({ item, onChange, onValidJsonChange }) {
   return (
     <>
       <Form.Group>
+        <Form.Label>Category</Form.Label>
+        <Autocomplete
+          options={categories.map((category) => ({
+            id: category,
+            label: category,
+          }))}
+          defaultValue={item.Category}
+          onChange={(e) => onChange({ ...item, Category: e.target.value })}
+        />
+      </Form.Group>
+      <Form.Group>
         <Form.Label>Scope</Form.Label>
         <Form.Control
           as="select"
           value={item.Scope}
           onBlur={(e) => onChange({ ...item, Scope: e.target.value })}
           onChange={(e) => onChange({ ...item, Scope: e.target.value })}
-          readOnly={false}
         >
           <option value="Public">Public</option>
           <option value="Private">Private</option>
@@ -249,7 +272,6 @@ function ItemForm({ item, onChange, onValidJsonChange }) {
           onChange={handleDataChange}
           style={{ height: "200px" }}
         />
-        {/* Indication for valid or invalid JSON */}
         {isValidJson ? (
           <div className="text-success mt-2">
             <CheckCircle className="me-2" /> Valid JSON
