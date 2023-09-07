@@ -28,6 +28,13 @@
       "permissions": {
         "setting": "open"
       }
+    },
+    "/test": {
+      "name": "/test",
+      "lambdaFunction": "test",
+      "permissions": {
+        "setting": "open"
+      }
     }
   }
 }

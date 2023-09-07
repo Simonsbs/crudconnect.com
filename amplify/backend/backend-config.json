@@ -55,6 +55,14 @@
           ],
           "category": "function",
           "resourceName": "ccFncCategory"
+        },
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "test"
         }
       ],
       "providerPlugin": "awscloudformation",
@@ -112,6 +120,13 @@
     "ccFncItem": {
       "build": true,
       "dependsOn": [
+        {
+          "attributes": [
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "crudconnectwebappauth"
+        },
         {
           "attributeEnvMap": {
             "Arn": "TABLE_ARN",
@@ -199,6 +214,25 @@
           ],
           "category": "storage",
           "resourceName": "ccTblUser"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "crudconnectwebappauth": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "LambdaLayer"
+    },
+    "test": {
+      "build": true,
+      "dependsOn": [
+        {
+          "attributes": [
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "crudconnectwebappauth"
         }
       ],
       "providerPlugin": "awscloudformation",
@@ -299,6 +333,38 @@
         {
           "category": "function",
           "resourceName": "ccFncUser"
+        }
+      ]
+    },
+    "AMPLIFY_function_crudconnectwebappauth_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "crudconnectwebappauth"
+        }
+      ]
+    },
+    "AMPLIFY_function_crudconnectwebappauth_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "crudconnectwebappauth"
+        }
+      ]
+    },
+    "AMPLIFY_function_test_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "test"
+        }
+      ]
+    },
+    "AMPLIFY_function_test_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "test"
         }
       ]
     }
