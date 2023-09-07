@@ -52,7 +52,13 @@ app.post("/login/:ProjectID", async function (req, res) {
     if (user && user.Password === Password) {
       const jwtSecret = await getJwtSecret();
       const token = jwt.sign(
-        { ID: user.ID, ProjectID: user.ProjectID, Role: user.Role },
+        {
+          ID: user.ID,
+          ProjectID: user.ProjectID,
+          Role: user.Role,
+          Email: user.Email,
+          Name: user.Name,
+        },
         jwtSecret
       );
       res.json({ token });
