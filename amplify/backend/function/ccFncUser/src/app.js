@@ -51,11 +51,7 @@ const convertUrlType = (param, type) => {
 
 app.get(path + hashKeyPath, async function (req, res) {
   const tokenPayload = await decodeAndVerifyToken(req);
-  if (
-    !tokenPayload ||
-    tokenPayload.payload["authType"] === "Public" ||
-    tokenPayload.payload["Role"] !== "Admin"
-  ) {
+  if (!tokenPayload) {
     res.statusCode = 403;
     res.json({ error: "Not authorized" });
     return;
