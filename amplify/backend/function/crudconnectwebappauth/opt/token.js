@@ -1,3 +1,4 @@
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const jwt = require("jsonwebtoken");
 const AWS = require("aws-sdk");
 const jwksClient = require("jwks-rsa");
@@ -6,6 +7,13 @@ const secretsManager = new AWS.SecretsManager();
 
 const userPoolId = "us-east-1_KarZ85pi4";
 const jwksUri = `https://cognito-idp.us-east-1.amazonaws.com/${userPoolId}/.well-known/jwks.json`;
+
+const ddbClient = new DynamoDBClient({ region: "us-east-1" });
+const {
+  DynamoDBDocumentClient,
+  ScanCommand,
+} = require("@aws-sdk/lib-dynamodb");
+const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
 
 const client = jwksClient({
   jwksUri: jwksUri,
@@ -32,6 +40,31 @@ function test() {
   return "test";
 }
 
+async function getProjectsForUser(userId) {
+  let scanParams = {
+    TableName: "ccTblProject-newdev",
+    FilterExpression: "#UserID = :UserIDVal",
+    ExpressionAttributeNames: {
+      "#UserID": "UserID",
+    },
+    ExpressionAttributeValues: {
+      ":UserIDVal": userId,
+    },
+  };
+
+  try {
+    const data = await ddbDocClient.send(new ScanCommand(scanParams));
+    return data.Items;
+  } catch (err) {
+    console.error("getProjectsForUser: " + err.message, err);
+    return {
+      error: "Could not load items: " + err.message,
+      userId: userId,
+      scanParams: scanParams,
+    };
+  }
+}
+
 async function decodeAndVerifyToken(req) {
   const authType = await identifyAuthentication(req);
   let tokenPayload = { authType: authType };
@@ -46,6 +79,7 @@ async function decodeAndVerifyToken(req) {
       tokenPayload = {
         authType: "External",
         payload: decoded,
+        projects: [decoded.ProjectID],
       };
     } catch (err) {
       tokenPayload = {
@@ -73,9 +107,12 @@ async function decodeAndVerifyToken(req) {
         );
       });
 
+      const projects = await getProjectsForUser(payload.sub);
+
       tokenPayload = {
         authType: "Cognito",
         payload: payload,
+        projects: projects,
       };
     } catch (err) {
       tokenPayload = {
@@ -100,9 +137,9 @@ async function identifyAuthentication(req) {
   return "Public";
 }
 
-// const extractProjectIDFromCategory = (projectID_Category) => {
-//   const parts = projectID_Category.split("_");
-//   return parts[0];
-// };
-
-module.exports = { test, identifyAuthentication, decodeAndVerifyToken };
+module.exports = {
+  test,
+  identifyAuthentication,
+  decodeAndVerifyToken,
+  getProjectsForUser,
+};

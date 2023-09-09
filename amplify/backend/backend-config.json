@@ -185,6 +185,13 @@
       "build": true,
       "dependsOn": [
         {
+          "attributes": [
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "crudconnectwebappauth"
+        },
+        {
           "attributeEnvMap": {
             "Arn": "TABLE_ARN",
             "Name": "TABLE_NAME"
@@ -203,6 +210,13 @@
     "ccFncUser": {
       "build": true,
       "dependsOn": [
+        {
+          "attributes": [
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "crudconnectwebappauth"
+        },
         {
           "attributeEnvMap": {
             "Arn": "TABLE_ARN",

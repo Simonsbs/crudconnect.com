@@ -12,12 +12,12 @@ const {
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
-  ScanCommand,
 } = require("@aws-sdk/lib-dynamodb");
 const awsServerlessExpressMiddleware = require("aws-serverless-express/middleware");
 const bodyParser = require("body-parser");
 const express = require("express");
 const { v4: uuidv4 } = require("uuid");
+const { getProjectsForUser } = require("/opt/token");
 
 const ddbClient = new DynamoDBClient({ region: process.env.TABLE_REGION });
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
@@ -76,9 +76,23 @@ function getUserFromRequest(req) {
 
 // 1. Get all projects using the authorization sub (UserID)
 app.get(path, async function (req, res) {
-  let userId = getUserFromRequest(req) || UNAUTH;
+  try {
+    let userId = getUserFromRequest(req) || UNAUTH;
 
-  let scanParams = {
+    const projects = await getProjectsForUser(userId);
+
+    if (!projects) {
+      res.statusCode = 500;
+      res.json({ error: "Could not load items" });
+      return;
+    }
+
+    res.json(projects);
+  } catch (err) {
+    res.statusCode = 500;
+    res.json({ error: "Could not load items: " + err.message });
+  }
+  /*let scanParams = {
     TableName: tableName,
     FilterExpression: "#UserID = :UserIDVal",
     ExpressionAttributeNames: {
@@ -95,7 +109,7 @@ app.get(path, async function (req, res) {
   } catch (err) {
     res.statusCode = 500;
     res.json({ error: "Could not load items: " + err.message });
-  }
+  }*/
 });
 
 /*****************************************
