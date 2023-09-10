@@ -2,11 +2,14 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const awsServerlessExpressMiddleware = require("aws-serverless-express/middleware");
 const token = require("/opt/token");
+const AWS = require("aws-sdk");
 
 // declare a new express app
 const app = express();
 app.use(bodyParser.json());
 app.use(awsServerlessExpressMiddleware.eventContext());
+
+const sts = new AWS.STS();
 
 // Enable CORS for all methods
 app.use(function (req, res, next) {
@@ -28,6 +31,13 @@ app.use(function (req, res, next) {
 });*/
 
 app.get("/test/*", async function (req, res) {
+  let identity;
+  try {
+    identity = await sts.getCallerIdentity({}).promise();
+  } catch (error) {
+    identity = { error: error.message, obj: error };
+  }
+
   try {
     const val = token.test();
     const payload = await token.decodeAndVerifyToken(req);
@@ -38,6 +48,8 @@ app.get("/test/*", async function (req, res) {
       payload,
       auth: req.headers.authorization,
       headers: req.headers,
+      gateway: req.apiGateway,
+      identity,
     });
   } catch (err) {
     res.status(500).json({

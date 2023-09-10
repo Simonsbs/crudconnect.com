@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useContext } from "react";
-import { API } from "aws-amplify";
 import { Form, Button, Table, Modal } from "react-bootstrap";
 import { Loader } from "@aws-amplify/ui-react";
 import { ProjectsContext } from "../../contexts/ProjectsContext";
 import { useNavigate } from "react-router-dom";
+import apiWrapper from "../../services/apiWrapper";
 
 function ProjectUsers() {
   const [users, setUsers] = useState();
@@ -23,7 +23,7 @@ function ProjectUsers() {
 
   const fetchUsers = async (projectId) => {
     setUsers(null);
-    const response = await API.get("ccApiFront", `/user/${projectId}`);
+    const response = await apiWrapper.get(`/user/${projectId}`);
     setUsers(response);
   };
 
@@ -51,13 +51,9 @@ function ProjectUsers() {
 
     if (isEditMode) {
       // Existing user, so update
-      await API.put(
-        "ccApiFront",
-        `/user/${selectedProject.ID}/${userData.Email}`,
-        {
-          body: userData,
-        }
-      );
+      await apiWrapper.put(`/user/${selectedProject.ID}/${userData.Email}`, {
+        body: userData,
+      });
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user.Email === userData.Email ? userData : user
@@ -65,7 +61,7 @@ function ProjectUsers() {
       );
     } else {
       // New user, so add
-      await API.post("ccApiFront", `/user`, {
+      await apiWrapper.post(`/user`, {
         body: userData,
       });
       setUsers((prevUsers) => [...prevUsers, userData]);
@@ -79,10 +75,7 @@ function ProjectUsers() {
   };
 
   const handleDeleteUser = async () => {
-    await API.del(
-      "ccApiFront",
-      `/user/object/${selectedProject.ID}/${deleteID}`
-    );
+    await apiWrapper.delete(`/user/object/${selectedProject.ID}/${deleteID}`);
     setUsers((prevUsers) =>
       prevUsers.filter((user) => user.Email !== deleteID)
     );

@@ -33,7 +33,9 @@
       "name": "/test",
       "lambdaFunction": "test",
       "permissions": {
-        "setting": "open"
+        "setting": "open",
+        "auth": ["create", "read", "update", "delete"],
+        "guest": ["create", "read", "update", "delete"]
       }
     }
   }

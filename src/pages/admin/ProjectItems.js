@@ -4,6 +4,7 @@ import { Form, Button, Table, Modal, Dropdown } from "react-bootstrap";
 import { ProjectsContext } from "../../contexts/ProjectsContext";
 import { CheckCircle, XCircle } from "react-bootstrap-icons";
 import { Autocomplete } from "@aws-amplify/ui-react";
+import apiWrapper from "../../services/apiWrapper";
 
 function ProjectItems() {
   const { selectedProject } = useContext(ProjectsContext);
@@ -27,8 +28,7 @@ function ProjectItems() {
   useEffect(() => {
     if (selectedProject) {
       const fetchCategories = async () => {
-        const response = await API.get(
-          "ccApiFront",
+        const response = await apiWrapper.get(
           `/category/${selectedProject.ID}`,
           await getAuthHeaders()
         );
@@ -41,8 +41,7 @@ function ProjectItems() {
   useEffect(() => {
     if (selectedCategory) {
       const fetchItems = async () => {
-        const response = await API.get(
-          "ccApiFront",
+        const response = await apiWrapper.get(
           `/item/${selectedProject.ID}_${selectedCategory}`,
           await getAuthHeaders()
         );
@@ -62,8 +61,7 @@ function ProjectItems() {
   };
 
   const handleDeleteItem = async (itemID) => {
-    await API.delete(
-      "ccApiFront",
+    await apiWrapper.delete(
       `/item/${selectedProject.ID}_${selectedCategory}/${itemID}`,
       await getAuthHeaders()
     );
@@ -73,22 +71,20 @@ function ProjectItems() {
   const handleSaveItem = async (itemData) => {
     const combinedCategory = `${selectedProject.ID}_${itemData.Category}`;
     if (editingItem) {
-      await API.put(
-        "ccApiFront",
-        `/item/${combinedCategory}/${editingItem.ItemID}`,
-        { body: itemData, ...(await getAuthHeaders()) }
-      );
+      await apiWrapper.put(`/item/${combinedCategory}/${editingItem.ItemID}`, {
+        body: itemData,
+        ...(await getAuthHeaders()),
+      });
       setItems((prevItems) =>
         prevItems.map((item) =>
           item.ItemID === editingItem.ItemID ? itemData : item
         )
       );
     } else {
-      const response = await API.post(
-        "ccApiFront",
-        `/item/${combinedCategory}`,
-        { body: itemData, ...(await getAuthHeaders()) }
-      );
+      const response = await apiWrapper.post(`/item/${combinedCategory}`, {
+        body: itemData,
+        ...(await getAuthHeaders()),
+      });
       setItems((prevItems) => [...prevItems, response]);
     }
     setShowItemModal(false);

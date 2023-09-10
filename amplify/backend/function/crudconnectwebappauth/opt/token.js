@@ -66,7 +66,7 @@ async function getProjectsForUser(userId) {
 }
 
 async function decodeAndVerifyToken(req) {
-  const authType = await identifyAuthentication(req);
+  const authType = identifyAuthentication(req);
   let tokenPayload = { authType: authType };
 
   if (authType === "JWT") {
@@ -126,7 +126,7 @@ async function decodeAndVerifyToken(req) {
   return tokenPayload;
 }
 
-async function identifyAuthentication(req) {
+function identifyAuthentication(req) {
   if (req.headers && req.headers.authorization) {
     if (req.headers.authorization.startsWith("Bearer ")) {
       return "JWT";
