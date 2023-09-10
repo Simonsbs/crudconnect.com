@@ -49,9 +49,27 @@ const convertUrlType = (param, type) => {
   }
 };
 
+// get all project users
 app.get(path + hashKeyPath, async function (req, res) {
   const tokenPayload = await decodeAndVerifyToken(req);
-  if (!tokenPayload) {
+  const projectID = req.params[partitionKeyName];
+
+  if (
+    !tokenPayload ||
+    tokenPayload.authType.toLowerCase() === "public" ||
+    !tokenPayload.projects ||
+    tokenPayload.projects.length === 0 ||
+    !tokenPayload.projects.includes(projectID)
+  ) {
+    res.statusCode = 403;
+    res.json({ error: "Not authorized" });
+    return;
+  }
+
+  if (
+    tokenPayload.authType === "JWT" &&
+    tokenPayload.payload.Role !== "Admin"
+  ) {
     res.statusCode = 403;
     res.json({ error: "Not authorized" });
     return;
@@ -69,7 +87,7 @@ app.get(path + hashKeyPath, async function (req, res) {
   } else {
     try {
       condition[partitionKeyName]["AttributeValueList"] = [
-        convertUrlType(req.params[partitionKeyName], partitionKeyType),
+        convertUrlType(projectID, partitionKeyType),
       ];
     } catch (err) {
       res.statusCode = 500;
@@ -97,21 +115,46 @@ app.get(path + hashKeyPath, async function (req, res) {
   }
 });
 
+// get a single project user
 app.get(
   path + "/object" + hashKeyPath + sortKeyPath,
   async function (req, res) {
+    const tokenPayload = await decodeAndVerifyToken(req);
+    const projectID = req.params[partitionKeyName];
+    const email = req.params[sortKeyName];
+
+    if (
+      !tokenPayload ||
+      tokenPayload.authType.toLowerCase() === "public" ||
+      !tokenPayload.projects ||
+      tokenPayload.projects.length === 0 ||
+      !tokenPayload.projects.includes(projectID)
+    ) {
+      res.statusCode = 403;
+      res.json({ error: "Not authorized" });
+      return;
+    }
+
+    if (tokenPayload.authType === "JWT") {
+      if (
+        tokenPayload.payload.Role.toLowerCase() !== "admin" &&
+        tokenPayload.payload.Email.toLowerCase() !== email.toLowerCase()
+      ) {
+        res.statusCode = 403;
+        res.json({ error: "Not authorized" });
+        return;
+      }
+    }
+
     const params = {};
     if (userIdPresent && req.apiGateway) {
       params[partitionKeyName] =
         req.apiGateway.event.requestContext.identity.cognitoIdentityId ||
         UNAUTH;
     } else {
-      params[partitionKeyName] = req.params[partitionKeyName];
+      params[partitionKeyName] = projectID;
       try {
-        params[partitionKeyName] = convertUrlType(
-          req.params[partitionKeyName],
-          partitionKeyType
-        );
+        params[partitionKeyName] = convertUrlType(projectID, partitionKeyType);
       } catch (err) {
         res.statusCode = 500;
         res.json({ error: "Wrong column type " + err });
@@ -119,10 +162,7 @@ app.get(
     }
     if (hasSortKey) {
       try {
-        params[sortKeyName] = convertUrlType(
-          req.params[sortKeyName],
-          sortKeyType
-        );
+        params[sortKeyName] = convertUrlType(email, sortKeyType);
       } catch (err) {
         res.statusCode = 500;
         res.json({ error: "Wrong column type " + err });
@@ -150,6 +190,7 @@ app.get(
   }
 );
 
+// update a single project user
 app.put(path + hashKeyPath + sortKeyPath, async function (req, res) {
   const tokenPayload = await decodeAndVerifyToken(req);
   if (!tokenPayload) {
@@ -177,6 +218,9 @@ app.put(path + hashKeyPath + sortKeyPath, async function (req, res) {
       res.json({ error: "Item not found!" });
       return;
     }
+
+    // Ensure the password is not changed
+    req.body["Password"] = existingItem.Item["Password"];
 
     let putItemParams = {
       TableName: tableName,

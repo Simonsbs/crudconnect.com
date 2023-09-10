@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Auth, API } from "aws-amplify";
+import { Auth } from "aws-amplify";
 import { Form, Button, Table, Modal, Dropdown } from "react-bootstrap";
 import { ProjectsContext } from "../../contexts/ProjectsContext";
 import { CheckCircle, XCircle } from "react-bootstrap-icons";

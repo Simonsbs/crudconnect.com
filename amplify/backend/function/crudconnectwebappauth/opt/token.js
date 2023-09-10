@@ -112,7 +112,7 @@ async function decodeAndVerifyToken(req) {
       tokenPayload = {
         authType: "Cognito",
         payload: payload,
-        projects: projects,
+        projects: projects ? projects.map((project) => project.ID) : [],
       };
     } catch (err) {
       tokenPayload = {
