@@ -5,15 +5,15 @@
   "main": "index.js",
   "license": "Apache-2.0",
   "dependencies": {
-    "aws-serverless-express": "^3.3.5",
-    "body-parser": "^1.19.1",
-    "express": "^4.17.2"
+    "aws-serverless-express": "^3.4.0",
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.92",
-    "@aws-sdk/client-dynamodb": "^3.188.0",
-    "@aws-sdk/lib-dynamodb": "^3.188.0",
-    "@aws-sdk/smithy-client": "^3.188.0",
-    "@aws-sdk/types" : "^3.188.0"
+    "@types/aws-lambda": "^8.10.120",
+    "@aws-sdk/client-dynamodb": "^3.410.0",
+    "@aws-sdk/lib-dynamodb": "^3.410.0",
+    "@aws-sdk/smithy-client": "^3.370.0",
+    "@aws-sdk/types": "^3.410.0"
   }
 }

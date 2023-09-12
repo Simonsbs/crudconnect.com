@@ -51,56 +51,56 @@ const convertUrlType = (param, type) => {
 
 // get all project users
 app.get(path + hashKeyPath, async function (req, res) {
-  const tokenPayload = await decodeAndVerifyToken(req);
-  const projectID = req.params[partitionKeyName];
-
-  if (
-    !tokenPayload ||
-    tokenPayload.authType.toLowerCase() === "public" ||
-    !tokenPayload.projects ||
-    tokenPayload.projects.length === 0 ||
-    !tokenPayload.projects.includes(projectID)
-  ) {
-    res.statusCode = 403;
-    res.json({ error: "Not authorized" });
-    return;
-  }
-
-  if (
-    tokenPayload.authType === "JWT" &&
-    tokenPayload.payload.Role !== "Admin"
-  ) {
-    res.statusCode = 403;
-    res.json({ error: "Not authorized" });
-    return;
-  }
-
-  const condition = {};
-  condition[partitionKeyName] = {
-    ComparisonOperator: "EQ",
-  };
-
-  if (userIdPresent && req.apiGateway) {
-    condition[partitionKeyName]["AttributeValueList"] = [
-      req.apiGateway.event.requestContext.identity.cognitoIdentityId || UNAUTH,
-    ];
-  } else {
-    try {
-      condition[partitionKeyName]["AttributeValueList"] = [
-        convertUrlType(projectID, partitionKeyType),
-      ];
-    } catch (err) {
-      res.statusCode = 500;
-      res.json({ error: "Wrong column type " + err });
-    }
-  }
-
-  let queryParams = {
-    TableName: tableName,
-    KeyConditions: condition,
-  };
-
   try {
+    const tokenPayload = await decodeAndVerifyToken(req);
+    const projectID = req.params[partitionKeyName];
+
+    if (
+      !tokenPayload ||
+      tokenPayload?.authType?.toLowerCase() === "public" ||
+      !tokenPayload.projects ||
+      tokenPayload.projects.length === 0 ||
+      !tokenPayload.projects.includes(projectID)
+    ) {
+      res.statusCode = 403;
+      res.json({ error: "Not authorized" });
+      return;
+    }
+
+    const isAdmin = tokenPayload.payload?.Role?.toLowerCase() === "admin";
+
+    if (tokenPayload.authType === "JWT" && !isAdmin) {
+      res.statusCode = 403;
+      res.json({ error: "Not authorized" });
+      return;
+    }
+
+    const condition = {};
+    condition[partitionKeyName] = {
+      ComparisonOperator: "EQ",
+    };
+
+    if (userIdPresent && req.apiGateway) {
+      condition[partitionKeyName]["AttributeValueList"] = [
+        req.apiGateway.event.requestContext.identity.cognitoIdentityId ||
+          UNAUTH,
+      ];
+    } else {
+      try {
+        condition[partitionKeyName]["AttributeValueList"] = [
+          convertUrlType(projectID, partitionKeyType),
+        ];
+      } catch (err) {
+        res.statusCode = 500;
+        res.json({ error: "Wrong column type " + err });
+      }
+    }
+
+    let queryParams = {
+      TableName: tableName,
+      KeyConditions: condition,
+    };
+
     const data = await ddbDocClient.send(new QueryCommand(queryParams));
 
     const sanitizedItems = data.Items.map((item) => {
@@ -125,7 +125,7 @@ app.get(
 
     if (
       !tokenPayload ||
-      tokenPayload.authType.toLowerCase() === "public" ||
+      tokenPayload.authType?.toLowerCase() === "public" ||
       !tokenPayload.projects ||
       tokenPayload.projects.length === 0 ||
       !tokenPayload.projects.includes(projectID)
@@ -135,11 +135,12 @@ app.get(
       return;
     }
 
+    const isAdmin = tokenPayload.payload?.Role?.toLowerCase() === "admin";
+    const isOwner =
+      tokenPayload.payload?.Email?.toLowerCase() === email.toLowerCase();
+
     if (tokenPayload.authType === "JWT") {
-      if (
-        tokenPayload.payload.Role.toLowerCase() !== "admin" &&
-        tokenPayload.payload.Email.toLowerCase() !== email.toLowerCase()
-      ) {
+      if (!isAdmin && !isOwner) {
         res.statusCode = 403;
         res.json({ error: "Not authorized" });
         return;
@@ -193,14 +194,32 @@ app.get(
 // update a single project user
 app.put(path + hashKeyPath + sortKeyPath, async function (req, res) {
   const tokenPayload = await decodeAndVerifyToken(req);
-  if (!tokenPayload) {
-    req.body["Role"] = "Guest";
-  }
-
   const projectID = req.params[partitionKeyName];
   const email = req.params[sortKeyName];
 
-  req.body["Email"] = email;
+  if (
+    !tokenPayload ||
+    tokenPayload.authType?.toLowerCase() === "public" ||
+    !tokenPayload.projects ||
+    tokenPayload.projects.length === 0 ||
+    !tokenPayload.projects.includes(projectID)
+  ) {
+    res.statusCode = 403;
+    res.json({ error: "Not authorized" });
+    return;
+  }
+
+  const isAdmin = tokenPayload.payload?.Role?.toLowerCase() === "admin";
+  const isOwner =
+    tokenPayload.payload?.Email?.toLowerCase() === email.toLowerCase();
+
+  if (tokenPayload.authType === "JWT") {
+    if (!isAdmin && !isOwner) {
+      res.statusCode = 403;
+      res.json({ error: "Not authorized" });
+      return;
+    }
+  }
 
   const getItemParams = {
     TableName: tableName,
@@ -219,8 +238,19 @@ app.put(path + hashKeyPath + sortKeyPath, async function (req, res) {
       return;
     }
 
-    // Ensure the password is not changed
-    req.body["Password"] = existingItem.Item["Password"];
+    // Admin and Owner can update the password
+    // only update password if it is sent
+    if (!req.body["Password"]) {
+      req.body["Password"] = existingItem.Item["Password"];
+    }
+
+    // Only Admin can update the role
+    if (!isAdmin) {
+      req.body["Role"] = existingItem.Item["Role"];
+    }
+
+    // No one can update the email
+    req.body["Email"] = existingItem.Item["Email"];
 
     let putItemParams = {
       TableName: tableName,
@@ -228,6 +258,7 @@ app.put(path + hashKeyPath + sortKeyPath, async function (req, res) {
     };
 
     await ddbDocClient.send(new PutCommand(putItemParams));
+
     req.body["Password"] = "*****";
     res.json({ success: "put call succeed!", url: req.url, data: req.body });
   } catch (err) {
@@ -236,9 +267,16 @@ app.put(path + hashKeyPath + sortKeyPath, async function (req, res) {
   }
 });
 
+// create a new project user
 app.post(path, async function (req, res) {
   const tokenPayload = await decodeAndVerifyToken(req);
-  if (!tokenPayload) {
+
+  if (!tokenPayload || tokenPayload.authType?.toLowerCase() === "public") {
+    req.body["Role"] = "Guest";
+  } else if (
+    tokenPayload.authType?.toLowerCase() === "jwt" &&
+    tokenPayload.payload?.Role?.toLowerCase() !== "admin"
+  ) {
     req.body["Role"] = "Guest";
   }
 
@@ -276,18 +314,43 @@ app.post(path, async function (req, res) {
 app.delete(
   path + "/object" + hashKeyPath + sortKeyPath,
   async function (req, res) {
+    const tokenPayload = await decodeAndVerifyToken(req);
+    const projectID = req.params[partitionKeyName];
+    const email = req.params[sortKeyName];
+
+    if (
+      !tokenPayload ||
+      tokenPayload.authType?.toLowerCase() === "public" ||
+      !tokenPayload.projects ||
+      tokenPayload.projects.length === 0 ||
+      !tokenPayload.projects.includes(projectID)
+    ) {
+      res.statusCode = 403;
+      res.json({ error: "Not authorized" });
+      return;
+    }
+
+    const isAdmin = tokenPayload.payload?.Role?.toLowerCase() === "admin";
+    const isOwner =
+      tokenPayload.payload?.Email?.toLowerCase() === email.toLowerCase();
+
+    if (tokenPayload.authType?.toLowerCase() === "jwt") {
+      if (!isAdmin && !isOwner) {
+        res.statusCode = 403;
+        res.json({ error: "Not authorized" });
+        return;
+      }
+    }
+
     const params = {};
     if (userIdPresent && req.apiGateway) {
       params[partitionKeyName] =
         req.apiGateway.event.requestContext.identity.cognitoIdentityId ||
         UNAUTH;
     } else {
-      params[partitionKeyName] = req.params[partitionKeyName];
+      params[partitionKeyName] = projectID;
       try {
-        params[partitionKeyName] = convertUrlType(
-          req.params[partitionKeyName],
-          partitionKeyType
-        );
+        params[partitionKeyName] = convertUrlType(projectID, partitionKeyType);
       } catch (err) {
         res.statusCode = 500;
         res.json({ error: "Wrong column type " + err });
@@ -295,10 +358,7 @@ app.delete(
     }
     if (hasSortKey) {
       try {
-        params[sortKeyName] = convertUrlType(
-          req.params[sortKeyName],
-          sortKeyType
-        );
+        params[sortKeyName] = convertUrlType(email, sortKeyType);
       } catch (err) {
         res.statusCode = 500;
         res.json({ error: "Wrong column type " + err });

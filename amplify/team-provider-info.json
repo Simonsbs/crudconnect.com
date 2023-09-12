@@ -53,31 +53,31 @@
       "function": {
         "ccFncProfile": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
-          "s3Key": "amplify-builds/ccFncProfile-7a44724978316f424d63-build.zip"
+          "s3Key": "amplify-builds/ccFncProfile-4a395933305873663553-build.zip"
         },
         "ccFncProject": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
-          "s3Key": "amplify-builds/ccFncProject-37435655334e44466f4e-build.zip"
+          "s3Key": "amplify-builds/ccFncProject-79496c7a723077543378-build.zip"
         },
         "ccFncUser": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
-          "s3Key": "amplify-builds/ccFncUser-3268364d463858675773-build.zip"
+          "s3Key": "amplify-builds/ccFncUser-4a6f316e423254667635-build.zip"
         },
         "ccFncLogin": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
-          "s3Key": "amplify-builds/ccFncLogin-62312f2f797045336270-build.zip"
+          "s3Key": "amplify-builds/ccFncLogin-624459674a3073464d42-build.zip"
         },
         "ccFncItem": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
-          "s3Key": "amplify-builds/ccFncItem-6a66612b746955534d56-build.zip"
+          "s3Key": "amplify-builds/ccFncItem-6b78356d523543305959-build.zip"
         },
         "ccFncCategory": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
-          "s3Key": "amplify-builds/ccFncCategory-7a7443454563392f3251-build.zip"
+          "s3Key": "amplify-builds/ccFncCategory-427661633149547a5363-build.zip"
         },
         "crudconnectwebappauth": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
-          "s3Key": "amplify-builds/crudconnectwebappauth-LambdaLayerVersion9d9a487f-build.zip"
+          "s3Key": "amplify-builds/crudconnectwebappauth-LambdaLayerVersion3aab8056-build.zip"
         },
         "test": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",

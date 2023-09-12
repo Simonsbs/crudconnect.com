@@ -31,7 +31,7 @@ function UserProfile() {
 
   const handleSave = async () => {
     try {
-      await API.put("ccApiBack", "/profile", { body: profile });
+      await API.put("ccApiBack", "/profile", profile);
       console.log("Profile updated successfully!");
       console.log(profile);
       setIsEditing(false);
