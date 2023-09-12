@@ -51,9 +51,10 @@ function ProjectUsers() {
 
     if (isEditMode) {
       // Existing user, so update
-      await apiWrapper.put(`/user/${selectedProject.ID}/${userData.Email}`, {
-        body: userData,
-      });
+      await apiWrapper.put(
+        `/user/${selectedProject.ID}/${userData.Email}`,
+        userData
+      );
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user.Email === userData.Email ? userData : user
@@ -61,9 +62,7 @@ function ProjectUsers() {
       );
     } else {
       // New user, so add
-      await apiWrapper.post(`/user`, {
-        body: userData,
-      });
+      await apiWrapper.post(`/user`, userData);
       setUsers((prevUsers) => [...prevUsers, userData]);
     }
     setShowEditModal(false);
