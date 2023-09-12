@@ -46,8 +46,9 @@ function ProjectUsers() {
   const handleSaveUser = async () => {
     const userData = { ...editingUser, ProjectID: selectedProject.ID };
 
-    console.log(userData);
-    console.log(isEditMode);
+    if (userData.Password === "" || userData.Password === editingUser.Email) {
+      delete userData.Password;
+    }
 
     if (isEditMode) {
       // Existing user, so update
