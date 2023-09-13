@@ -71,20 +71,22 @@ function ProjectItems() {
   const handleSaveItem = async (itemData) => {
     const combinedCategory = `${selectedProject.ID}_${itemData.Category}`;
     if (editingItem) {
-      await apiWrapper.put(`/item/${combinedCategory}/${editingItem.ItemID}`, {
-        body: itemData,
-        ...(await getAuthHeaders()),
-      });
+      await apiWrapper.put(
+        `/item/${combinedCategory}/${editingItem.ItemID}`,
+        itemData,
+        await getAuthHeaders()
+      );
       setItems((prevItems) =>
         prevItems.map((item) =>
           item.ItemID === editingItem.ItemID ? itemData : item
         )
       );
     } else {
-      const response = await apiWrapper.post(`/item/${combinedCategory}`, {
-        body: itemData,
-        ...(await getAuthHeaders()),
-      });
+      const response = await apiWrapper.post(
+        `/item/${combinedCategory}`,
+        itemData,
+        await getAuthHeaders()
+      );
       setItems((prevItems) => [...prevItems, response]);
     }
     setShowItemModal(false);
