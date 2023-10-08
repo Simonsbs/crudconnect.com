@@ -2,6 +2,7 @@ const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const {
   DeleteCommand,
   DynamoDBDocumentClient,
+  GetCommand,
   PutCommand,
   QueryCommand,
   UpdateCommand,
@@ -106,6 +107,10 @@ app.post("/item/:ProjectID_Category", async (req, res) => {
   const newItem = {
     ProjectID_Category: ProjectID_Category,
     ItemID: uuidv4(),
+    CreatedBy: payload.Email,
+    CreatedAt: new Date().toISOString(),
+    UpdatedBy: payload.Email,
+    UpdatedAt: new Date().toISOString(),
     ...req.body,
   };
 
@@ -139,31 +144,53 @@ app.put("/item/:ProjectID_Category/:ItemID", async (req, res) => {
     });
   }
 
-  const updateExpressions = [];
-  const expressionAttributeNames = {};
-  const expressionAttributeValues = {};
-
-  for (let key in req.body) {
-    if (key !== "ProjectID_Category" && key !== "ItemID") {
-      updateExpressions.push(`#${key} = :${key}`);
-      expressionAttributeNames[`#${key}`] = key;
-      expressionAttributeValues[`:${key}`] = req.body[key];
-    }
-  }
-
-  const updateItemParams = {
+  // Step 1: Verify the item exists
+  const getItemParams = {
     TableName: tableName,
     Key: {
       ProjectID_Category: ProjectID_Category,
       ItemID: ItemID,
     },
-    UpdateExpression: `SET ${updateExpressions.join(", ")}`,
-    ExpressionAttributeNames: expressionAttributeNames,
-    ExpressionAttributeValues: expressionAttributeValues,
-    ReturnValues: "ALL_NEW",
   };
 
   try {
+    const getItemResponse = await ddbDocClient.send(
+      new GetCommand(getItemParams)
+    );
+    if (!getItemResponse.Item) {
+      return res.status(404).json({ error: "Item not found" });
+    }
+
+    // Step 2: Override the constant fields
+    req.body.CreatedBy = getItemResponse.Item.CreatedBy;
+    req.body.CreatedAt = getItemResponse.Item.CreatedAt;
+    req.body.UpdatedBy = payload.Email;
+    req.body.UpdatedAt = new Date().toISOString();
+
+    const updateExpressions = [];
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = {};
+
+    for (let key in req.body) {
+      if (key !== "ProjectID_Category" && key !== "ItemID") {
+        updateExpressions.push(`#${key} = :${key}`);
+        expressionAttributeNames[`#${key}`] = key;
+        expressionAttributeValues[`:${key}`] = req.body[key];
+      }
+    }
+
+    const updateItemParams = {
+      TableName: tableName,
+      Key: {
+        ProjectID_Category: ProjectID_Category,
+        ItemID: ItemID,
+      },
+      UpdateExpression: `SET ${updateExpressions.join(", ")}`,
+      ExpressionAttributeNames: expressionAttributeNames,
+      ExpressionAttributeValues: expressionAttributeValues,
+      ReturnValues: "ALL_NEW",
+    };
+
     const data = await ddbDocClient.send(new UpdateCommand(updateItemParams));
     res.json(data.Attributes);
   } catch (err) {
