@@ -107,9 +107,9 @@ app.post("/item/:ProjectID_Category", async (req, res) => {
   const newItem = {
     ProjectID_Category: ProjectID_Category,
     ItemID: uuidv4(),
-    CreatedBy: payload.Email,
+    CreatedBy: payload.payload.ID,
     CreatedAt: new Date().toISOString(),
-    UpdatedBy: payload.Email,
+    UpdatedBy: payload.payload.ID,
     UpdatedAt: new Date().toISOString(),
     ...req.body,
   };
@@ -120,10 +120,16 @@ app.post("/item/:ProjectID_Category", async (req, res) => {
   };
 
   try {
-    await ddbDocClient.send(new PutCommand(putItemParams));
+    await ddbDocClient.send(
+      new PutCommand(putItemParams, { removeUndefinedValues: true })
+    );
     res.json(newItem);
   } catch (err) {
-    res.status(500).json({ error: "Could not insert item: " + err.message });
+    res.status(500).json({
+      error: "Could not insert item: " + err.message,
+      params: putItemParams,
+      payload: payload,
+    });
   }
 });
 
@@ -144,7 +150,6 @@ app.put("/item/:ProjectID_Category/:ItemID", async (req, res) => {
     });
   }
 
-  // Step 1: Verify the item exists
   const getItemParams = {
     TableName: tableName,
     Key: {
@@ -161,15 +166,13 @@ app.put("/item/:ProjectID_Category/:ItemID", async (req, res) => {
       return res.status(404).json({ error: "Item not found" });
     }
 
-    // Step 2: Override the constant fields
-
     if (!getItemResponse.Item.CreatedBy) {
       req.body.CreatedBy = getItemResponse.Item.CreatedBy;
     }
     if (!getItemResponse.Item.CreatedAt) {
       req.body.CreatedAt = getItemResponse.Item.CreatedAt;
     }
-    req.body.UpdatedBy = payload.Email;
+    req.body.UpdatedBy = payload.payload.ID;
     req.body.UpdatedAt = new Date().toISOString();
 
     const updateExpressions = [];
@@ -196,7 +199,9 @@ app.put("/item/:ProjectID_Category/:ItemID", async (req, res) => {
       ReturnValues: "ALL_NEW",
     };
 
-    const data = await ddbDocClient.send(new UpdateCommand(updateItemParams));
+    const data = await ddbDocClient.send(
+      new UpdateCommand(updateItemParams, { removeUndefinedValues: true })
+    );
     res.json(data.Attributes);
   } catch (err) {
     res.status(500).json({ error: "Could not update item: " + err.message });
