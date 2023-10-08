@@ -162,8 +162,13 @@ app.put("/item/:ProjectID_Category/:ItemID", async (req, res) => {
     }
 
     // Step 2: Override the constant fields
-    req.body.CreatedBy = getItemResponse.Item.CreatedBy;
-    req.body.CreatedAt = getItemResponse.Item.CreatedAt;
+
+    if (!getItemResponse.Item.CreatedBy) {
+      req.body.CreatedBy = getItemResponse.Item.CreatedBy;
+    }
+    if (!getItemResponse.Item.CreatedAt) {
+      req.body.CreatedAt = getItemResponse.Item.CreatedAt;
+    }
     req.body.UpdatedBy = payload.Email;
     req.body.UpdatedAt = new Date().toISOString();
 
