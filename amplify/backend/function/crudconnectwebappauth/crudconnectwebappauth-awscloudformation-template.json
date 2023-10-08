@@ -20,7 +20,7 @@
     }
   },
   "Resources": {
-    "LambdaLayerVersion81256272": {
+    "LambdaLayerVersione5f330ea": {
       "Type": "AWS::Lambda::LayerVersion",
       "Properties": {
         "CompatibleRuntimes": [
@@ -30,9 +30,9 @@
           "S3Bucket": {
             "Ref": "deploymentBucketName"
           },
-          "S3Key": "amplify-builds/crudconnectwebappauth-LambdaLayerVersion81256272-build.zip"
+          "S3Key": "amplify-builds/crudconnectwebappauth-LambdaLayerVersione5f330ea-build.zip"
         },
-        "Description": "Updated layer version 2023-09-13T16:37:10.100Z",
+        "Description": "Updated layer version 2023-10-08T14:48:29.934Z",
         "LayerName": {
           "Fn::Sub": [
             "crudconnectwebappauth-${env}",
@@ -47,11 +47,11 @@
       "DeletionPolicy": "Delete",
       "UpdateReplacePolicy": "Retain"
     },
-    "LambdaLayerPermissionPrivate81256272": {
+    "LambdaLayerPermissionPrivatee5f330ea": {
       "Type": "AWS::Lambda::LayerVersionPermission",
       "Properties": {
         "Action": "lambda:GetLayerVersion",
-        "LayerVersionArn": "arn:aws:lambda:us-east-1:205254036537:layer:crudconnectwebappauth-newdev:28",
+        "LayerVersionArn": "arn:aws:lambda:us-east-1:205254036537:layer:crudconnectwebappauth-newdev:31",
         "Principal": {
           "Ref": "AWS::AccountId"
         }
@@ -91,7 +91,7 @@
   "Outputs": {
     "Arn": {
       "Value": {
-        "Ref": "LambdaLayerVersion81256272"
+        "Ref": "LambdaLayerVersione5f330ea"
       }
     }
   }

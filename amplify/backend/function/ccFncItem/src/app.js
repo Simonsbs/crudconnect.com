@@ -107,9 +107,9 @@ app.post("/item/:ProjectID_Category", async (req, res) => {
   const newItem = {
     ProjectID_Category: ProjectID_Category,
     ItemID: uuidv4(),
-    CreatedBy: payload.payload.ID,
+    CreatedBy: payload.payload.Email,
     CreatedAt: new Date().toISOString(),
-    UpdatedBy: payload.payload.ID,
+    UpdatedBy: payload.payload.Email,
     UpdatedAt: new Date().toISOString(),
     ...req.body,
   };
@@ -172,7 +172,7 @@ app.put("/item/:ProjectID_Category/:ItemID", async (req, res) => {
     if (!getItemResponse.Item.CreatedAt) {
       req.body.CreatedAt = getItemResponse.Item.CreatedAt;
     }
-    req.body.UpdatedBy = payload.payload.ID;
+    req.body.UpdatedBy = payload.payload.Email;
     req.body.UpdatedAt = new Date().toISOString();
 
     const updateExpressions = [];
