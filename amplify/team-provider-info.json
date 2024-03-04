@@ -77,7 +77,7 @@
         },
         "crudconnectwebappauth": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
-          "s3Key": "amplify-builds/crudconnectwebappauth-LambdaLayerVersion3aab8056-build.zip"
+          "s3Key": "amplify-builds/crudconnectwebappauth-LambdaLayerVersiond8f3a25f-build.zip"
         },
         "test": {
           "deploymentBucketName": "amplify-crudconnectwebapp-newdev-154144-deployment",
