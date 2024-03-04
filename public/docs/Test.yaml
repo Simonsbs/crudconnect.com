@@ -1,0 +1,262 @@
+openapi: "3.0.1"
+info:
+  title: "Test API"
+  version: "1.0.0"
+servers:
+  - url: "https://front.crudconnect.com"
+    description: "Production"
+paths:
+  /test:
+    get:
+      summary: Test GET endpoint
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                  url:
+                    type: string
+    post:
+      summary: Test POST endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sample:
+                  type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                  url:
+                    type: string
+                  body:
+                    type: object
+    put:
+      summary: Test PUT endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sample:
+                  type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                  url:
+                    type: string
+                  body:
+                    type: object
+    delete:
+      summary: Test DELETE endpoint
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                  url:
+                    type: string
+  /test/{param}:
+    get:
+      summary: Test GET endpoint with path parameter
+      parameters:
+        - in: path
+          name: param
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response with additional details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                  url:
+                    type: string
+                  val:
+                    type: string
+                  payload:
+                    type: object
+                  auth:
+                    type: string
+                  headers:
+                    type: object
+                  gateway:
+                    type: object
+                  identity:
+                    type: object
+    post:
+      summary: Test POST endpoint with path parameter
+      parameters:
+        - in: path
+          name: param
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sample:
+                  type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                  url:
+                    type: string
+                  body:
+                    type: object
+    put:
+      summary: Test PUT endpoint with path parameter
+      parameters:
+        - in: path
+          name: param
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sample:
+                  type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                  url:
+                    type: string
+                  body:
+                    type: object
+    delete:
+      summary: Test DELETE endpoint with path parameter
+      parameters:
+        - in: path
+          name: param
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                  url:
+                    type: string
+
+components:
+  schemas:
+    RequestSchema:
+      title: "Request Schema"
+      required:
+        - "request"
+      type: "object"
+      properties:
+        request:
+          type: "string"
+    ResponseSchema:
+      title: "Response Schema"
+      required:
+        - "response"
+      type: "object"
+      properties:
+        response:
+          type: "string"
+
+    User:
+      type: object
+      properties:
+        ProjectID:
+          type: string
+        Email:
+          type: string
+        Password:
+          type: string
+        Role:
+          type: string
+      required:
+        - ProjectID
+        - Email
+
+    # New Item schema
+    Item:
+      type: object
+      properties:
+        ProjectID_Category:
+          type: string
+        ItemID:
+          type: string
+          description: "Unique identifier for the item"
+        CreatedBy:
+          type: string
+        CreatedAt:
+          type: string
+          format: date-time
+        UpdatedBy:
+          type: string
+        UpdatedAt:
+          type: string
+          format: date-time
+        # Include other item properties as needed
+      required:
+        - ProjectID_Category
+        - ItemID
+        - CreatedBy
+        - CreatedAt

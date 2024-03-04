@@ -51,6 +51,11 @@ function Header() {
                 Dashboard
               </Link>
             </li>
+            <li>
+              <Link to="./docs" className="nav-link px-2 link-body-emphasis">
+                API Documentation
+              </Link>
+            </li>
           </ul>
 
           {user ? (

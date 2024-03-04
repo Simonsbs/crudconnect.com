@@ -17,6 +17,7 @@ import ProtectedAdmin from "./layout/ProtectedAdmin";
 import Projects from "./pages/admin/Projects";
 import ProjectUsers from "./pages/admin/ProjectUsers";
 import ProjectItems from "./pages/admin/ProjectItems";
+import ApiDocumentation from "./pages/ApiDocumentation";
 
 Amplify.configure(config);
 
@@ -29,6 +30,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/docs" element={<ApiDocumentation />} />
           <Route path="/login" element={<Login />} />
           <Route
             path="/admin"

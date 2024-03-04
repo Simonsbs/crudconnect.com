@@ -1,0 +1,456 @@
+openapi: "3.0.1"
+info:
+  title: "CRUD Connect API"
+  description: "The CRUD Connect API provides a comprehensive set of endpoints for managing users, items, and categories within a project. It supports operations such as user authentication, creating, reading, updating, and deleting (CRUD) users and items, and fetching unique categories based on project ID. This API is designed to facilitate easy management of project data and user access."
+  version: "1.0.0"
+servers:
+  - url: "https://front.crudconnect.com"
+    description: "Production"
+paths:
+  /login/{ProjectID}:
+    post:
+      summary: "User login"
+      description: >
+        This endpoint allows users to authenticate against a specific project using their email and password.
+        Upon successful authentication, the user is granted a JSON Web Token (JWT) that must be used for authorization
+        in subsequent API requests. The JWT contains encoded information about the user's session, including
+        their roles and permissions within the project.
+      parameters:
+        - in: path
+          name: ProjectID
+          schema:
+            type: string
+          required: true
+          description: "The unique identifier of the project. This ID ensures that the user is authenticating within the correct project context."
+      requestBody:
+        description: "JSON payload containing the user's login credentials."
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Email:
+                  type: string
+                  description: "The user's email address. Must match the email associated with a user account within the project."
+                Password:
+                  type: string
+                  description: "The user's password. Must match the password associated with the user's email address in the project."
+              required:
+                - Email
+                - Password
+      responses:
+        "200":
+          description: "Successful login. Returns a JWT token which should be included in the Authorization header as a Bearer token for subsequent requests."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: "The JWT token that must be used in the Authorization header for authenticated requests. The token is valid for a limited period of time, typically several hours."
+        "401":
+          description: "Invalid credentials. This response is returned if the email or password does not match the records for the specified project. It indicates that the authentication attempt has failed."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "A message indicating that the user's credentials are invalid."
+        "500":
+          description: "Internal server error. This indicates that an unexpected condition was encountered in the server, preventing it from fulfilling the request."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "A message indicating an internal error that prevented the request from being processed."
+
+  /user/{ProjectID}:
+    get:
+      summary: "Get all project users"
+      description: >
+        Retrieves a list of all users associated with the specified project. This endpoint is typically used
+        by administrators or services needing to audit or manage project memberships. Access may be restricted
+        based on the caller's role and permissions.
+      parameters:
+        - in: path
+          name: ProjectID
+          required: true
+          schema:
+            type: string
+          description: "The unique identifier of the project for which users are being retrieved."
+      responses:
+        "200":
+          description: "Returns a list of user objects associated with the project. Each user object contains information such as email and role."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "403":
+          description: "The caller does not have permission to access this list of users."
+        "500":
+          description: "An error occurred on the server while processing the request."
+
+    post:
+      summary: "Create a new project user"
+      description: >
+        Allows for the registration of a new user within a specific project. This endpoint is designed to facilitate
+        the onboarding of new project members by accepting user details and associating them with the given project ID.
+        Depending on the system's configuration, this operation may require administrative privileges or be open to
+        users with specific roles within the project.
+      parameters:
+        - in: path
+          name: ProjectID
+          required: true
+          schema:
+            type: string
+          description: "The project ID within which the new user will be registered."
+      requestBody:
+        description: "The details of the user to be created, including their email, role, and other pertinent information."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "200":
+          description: "The user was successfully created and associated with the project. Returns the created user object, excluding sensitive information like passwords."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "403":
+          description: "The caller does not have permission to create a new user in the project. This response typically indicates that the user's role or authentication token does not allow for user creation."
+        "500":
+          description: "An internal server error occurred while attempting to create the new user. This response indicates that the server encountered an unexpected condition that prevented it from fulfilling the request."
+
+  /user/object/{ProjectID}/{Email}:
+    get:
+      summary: "Get a single project user"
+      description: >
+        Retrieves detailed information about a specific user within a given project, identified by their email.
+        This operation can be used to fetch user-specific data such as roles and other profile details. Access
+        might be restricted to ensure privacy and security, typically requiring the caller to have administrative
+        privileges or to be the user in question.
+      parameters:
+        - in: path
+          name: ProjectID
+          required: true
+          schema:
+            type: string
+          description: "The unique identifier of the project."
+        - in: path
+          name: Email
+          required: true
+          schema:
+            type: string
+          description: "The email address of the user to retrieve."
+      responses:
+        "200":
+          description: "The request was successful, and the user's details are returned."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "403":
+          description: "The requester does not have permission to access this user's details."
+        "500":
+          description: "An unexpected error occurred on the server while processing the request."
+
+    put:
+      summary: "Update a single project user"
+      description: >
+        Allows for updating the information of a specific user within a project. This might include changing the
+        user's role, contact information, or other profile details. Access control should ensure that only authorized
+        users, such as administrators or the user themselves, can update this information.
+      parameters:
+        - in: path
+          name: ProjectID
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: Email
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: "The updated information for the user. Fields not provided will remain unchanged."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "200":
+          description: "The user's information was successfully updated."
+        "403":
+          description: "The requester is not authorized to update this user's information."
+        "404":
+          description: "The specified user could not be found within the project."
+        "500":
+          description: "An error occurred on the server while attempting to update the user."
+
+    delete:
+      summary: "Delete a project user"
+      description: >
+        Removes a user from a project entirely. This operation should be used with caution as it will permanently
+        delete the user's association with the project, along with any specific data or permissions tied to this
+        project. Typically, only administrators have the authority to delete users.
+      parameters:
+        - in: path
+          name: ProjectID
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: Email
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "The user was successfully deleted from the project."
+        "403":
+          description: "The requester does not have permission to delete this user."
+        "500":
+          description: "An unexpected error occurred on the server while processing the deletion request."
+
+  /category/{ProjectID}:
+    get:
+      summary: "Fetch Unique Categories Based on ProjectID"
+      description: >
+        This endpoint provides a mechanism to retrieve a distinct list of categories associated with items within a specific project.
+        It's particularly useful for applications needing to organize or display items categorically. The endpoint returns a list of
+        unique category names, which can then be used to filter or sort project items accordingly. Access to this endpoint may
+        require appropriate authentication to ensure data sensitivity and access control are maintained.
+      parameters:
+        - in: path
+          name: ProjectID
+          required: true
+          schema:
+            type: string
+          description: "The unique identifier for the project from which categories will be fetched. The identifier must correspond to an existing project within the system."
+      responses:
+        "200":
+          description: >
+            Successfully retrieved the list of unique categories. The response is an array of strings, each representing a unique category name within the project.
+            This list can be used for filtering or categorizing items displayed to the user. Note that the list is dynamically generated from current project data and reflects the latest state of item categorization.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  example: ["Category1", "Category2", "Category3"]
+                  description: "A unique category name within the project."
+        "401":
+          description: >
+            Unauthorized access attempt. This response indicates that the request failed authentication checks and might be due to an invalid or expired token.
+            Ensure that the request includes a valid authentication token and that the token has sufficient permissions to access project-specific data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "A message detailing the reason for the authorization failure."
+        "500":
+          description: >
+            Internal server error. This indicates that an unexpected condition was encountered on the server, preventing it from fulfilling the request.
+            Such errors are usually transient; retrying the request after some time may resolve the issue. If the problem persists, consider reaching out to the support team with the request details for further investigation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: "A message providing more details about the server error encountered."
+
+  /item/{ProjectID_Category}:
+    get:
+      summary: "Get All Items in Project"
+      description: >
+        Retrieves a comprehensive list of items within a specific category of a project. This endpoint is crucial for applications that require a detailed view of project contents, enabling users to filter and access items based on categories. The returned items include all relevant details as defined in the Item schema, excluding sensitive information.
+      parameters:
+        - in: path
+          name: ProjectID_Category
+          required: true
+          schema:
+            type: string
+          description: "Concatenated Project ID and Category, separated by an underscore, used to uniquely identify and filter the items within a specific project category."
+      responses:
+        "200":
+          description: "Successfully retrieved the list of items within the specified category of the project. The response is an array of item objects."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Item"
+
+    post:
+      summary: "Post a New Item to the Project"
+      description: >
+        Allows for the addition of a new item to a project under a specified category. This endpoint is designed for user contributions to the project, facilitating the dynamic growth of project contents. Clients must provide item details in the request body according to the Item schema. The server assigns a unique ItemID upon creation.
+      parameters:
+        - in: path
+          name: ProjectID_Category
+          required: true
+          schema:
+            type: string
+          description: "Concatenated Project ID and Category, separated by an underscore. This parameter specifies under which project and category the new item will be added."
+      requestBody:
+        description: "Details of the new item to be added to the project. The schema for the item is referenced from the components section."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Item"
+      responses:
+        "200":
+          description: "The item was successfully created and added to the project. The response includes the details of the newly created item, including its unique ItemID."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+
+  /item/{ProjectID_Category}/{ItemID}:
+    put:
+      summary: "Update an Item in the Project"
+      description: >
+        Enables the modification of an existing item's details within a specific category of a project. This endpoint is crucial for maintaining up-to-date and accurate item information. The request body should contain the updated item data, adhering to the Item schema. Note that while some fields can be updated, others, like the ItemID, should remain immutable.
+      parameters:
+        - in: path
+          name: ProjectID_Category
+          required: true
+          schema:
+            type: string
+          description: "The combination of Project ID and Category, identifying the category within which the item resides."
+        - in: path
+          name: ItemID
+          required: true
+          schema:
+            type: string
+          description: "The unique identifier of the item to be updated."
+      requestBody:
+        description: "The updated data for the item. Only fields that are provided will be updated; missing fields will retain their current values."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Item"
+      responses:
+        "200":
+          description: "The item was successfully updated with the provided data. The response includes the updated item details."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+        "404":
+          description: "The specified item or category does not exist within the project. Verification of the ProjectID_Category and ItemID is recommended."
+        "403":
+          description: "Unauthorized attempt to update the item. Only authorized users, such as the item creator or project administrators, may perform this operation."
+        "500":
+          description: "An internal server error occurred while processing the item update. This may indicate a temporary issue; retrying the operation might be successful."
+
+    delete:
+      summary: "Delete Item from the Project"
+      description: >
+        Removes an item from the specified category within a project. This operation should be used with caution as it will permanently delete the item and all associated data. Typically, only project administrators or the user who created the item have the permission to delete it.
+      parameters:
+        - in: path
+          name: ProjectID_Category
+          required: true
+          schema:
+            type: string
+          description: "The combination of Project ID and Category from which the item will be deleted."
+        - in: path
+          name: ItemID
+          required: true
+          schema:
+            type: string
+          description: "The unique identifier of the item to be deleted."
+      responses:
+        "200":
+          description: "The item was successfully deleted from the project. The response confirms the successful deletion."
+        "404":
+          description: "The specified item or category does not exist within the project. Verification of the ProjectID_Category and ItemID is recommended."
+        "403":
+          description: "Unauthorized attempt to delete the item. Only authorized users, such as the item creator or project administrators, may perform this operation."
+        "500":
+          description: "An internal server error occurred while processing the item deletion. This may indicate a temporary issue; retrying the operation might be successful."
+
+components:
+  schemas:
+    RequestSchema:
+      title: "Request Schema"
+      required:
+        - "request"
+      type: "object"
+      properties:
+        request:
+          type: "string"
+    ResponseSchema:
+      title: "Response Schema"
+      required:
+        - "response"
+      type: "object"
+      properties:
+        response:
+          type: "string"
+
+    User:
+      type: object
+      properties:
+        ProjectID:
+          type: string
+          description: "The ID of the project to which the user belongs."
+        Email:
+          type: string
+          description: "The email address of the user. Used as a unique identifier for login and communication purposes."
+        Role:
+          type: string
+          description: "The role assigned to the user within the project, determining their level of access and permissions."
+      required:
+        - ProjectID
+        - Email
+
+    Item:
+      type: object
+      description: "Schema defining the structure of an item within a project. Includes information such as the item's unique identifier, creation metadata, and any other relevant details."
+      properties:
+        ItemID:
+          type: string
+          description: "A unique identifier for the item, assigned by the server upon creation."
+        ProjectID_Category:
+          type: string
+          description: "Combination of Project ID and Category that the item belongs to."
+        Name:
+          type: string
+          description: "The name or title of the item."
+        Description:
+          type: string
+          description: "A detailed description of the item."
+        CreatedBy:
+          type: string
+          description: "Email address of the user who created the item."
+        CreatedAt:
+          type: string
+          format: date-time
+          description: "Timestamp indicating when the item was added to the project."
+      required:
+        - ProjectID_Category
+        - Name
+        - CreatedBy
+        - CreatedAt
